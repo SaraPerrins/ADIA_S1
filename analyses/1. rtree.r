@@ -125,7 +125,7 @@ df0 <-
   dat %>%
   filter(training.sample==1)
 
-### b. find effect modofiers
+### b. find effect modifiers
 #library(devtools)
 #install_github("susanathey/causalTree")
 #Reference https://doi.org/10.48550/arXiv.1504.01132
