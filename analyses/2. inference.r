@@ -49,6 +49,6 @@ cbind(pred.cnd,confint(pred.cnd))
 #-------------------------------------------------------------------------------
 #df1$node.cau  <- df1$node.cls
 sd.wb    <- svydesign(id = ~id, weights = ~wb, data = df1)
-fit.cau <- svyglm(y~ anyACE:node.cau + node.cls -1, design=sd.wb)
+fit.cau <- svyglm(y~ anyACE:node.cau + node.cau  -1, design=sd.wb)
 tb <- coef(summary(fit.cau ))
 tb[grep('anyACE:',rownames(tb)),]

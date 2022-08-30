@@ -1,6 +1,7 @@
 library(tidyverse)
 library(rpart)
 library(partykit)
+library(rpart.plot)
 set.seed(0203)
 
 dat <- readRDS('data/test.Rds')
@@ -35,7 +36,7 @@ plotcp(tree,col='red' )
 #b.- prune based on complexity
 opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
 ptree <- prune(tree, cp = opcp)
-#rpart.plot(optree)
+#rpart.plot(ptree)
 plot(as.party(ptree))
 
 png('output/tree.plot.unconditional.png',width = 480*4,heigh=480*4,res=300)
@@ -72,7 +73,7 @@ plotcp(tree,col='red' )
 #b.- prune based on complexity
 opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
 ptree.cond <- prune(tree, cp = opcp)
-#rpart.plot(optree)
+#rpart.plot(ptree.cond)
 plot(as.party(ptree.cond))
 
 
@@ -114,7 +115,6 @@ ebw1 <- with(dat, ebw(id=id[anyACE==1], covariates=C[anyACE==1,], target.margins
 ebw0 <- with(dat, ebw(id=id[anyACE==0], covariates=C[anyACE==0,], target.margins=tgt, base.weight = w[anyACE==0]))
 dat  <- left_join(dat,rbind(ebw0,ebw1))
 
-
 with(dat,data.frame(C,anyACE,w,wb)) %>%
   group_by(anyACE) %>%
   summarize(across(everything(), list(
@@ -130,15 +130,20 @@ df0 <-
 #install_github("susanathey/causalTree")
 #Reference https://doi.org/10.48550/arXiv.1504.01132
 library(causalTree)
-tree <- with(df0, causalTree(y~ ., data = cbind(y,X,Z,wb), treatment = anyACE, weights=wb,
-                   split.Rule = "CT", cv.option = "CT", split.Honest = T, cv.Honest = T, split.Bucket = F,
-                   xval = 5, cp = 0, minsize = 20, propensity = 0.5))
+
+###Transformed Outcome Trees (TOT), not the recomended approach
+#tree <-  with(df0, causalTree(y~ ., data = cbind(y,X,Z), treatment =  anyACE, weights=wb))
+#rpart.plot(tree,roundint=FALSE)
+
+###Causal Trees (CT)
+tree <- with(df0, causalTree(y~ ., data = cbind(y,X,Z), treatment = anyACE, weights=wb,
+                   split.Rule = "CT", cv.option = "CT", split.Honest = T, cv.Honest = T,cp = 0))
 
 opcp <- tree$cptable[,1][which.min(tree$cptable[,4])]
-ptree.causal <- prune(tree, opcp)
+ptree.causal <- prune(tree, cp=opcp)
 
 rpart.plot(ptree.causal)
-plot(as.party(ptree.causal))
+
 
 
 png('output/tree.plot.causal.png',width = 480*4,heigh=480*4,res=300)
