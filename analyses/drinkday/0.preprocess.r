@@ -12,8 +12,9 @@ dat$race[dat$asian_nhpi==1]<-4
 dat$race[dat$asian==1]<-5
 dat$race[dat$othrace==1]<-6
 dat$race[dat$hisp==1]<-1
-dat$race <- apply(
-  dat[, c('white','black','asian_nhpi','asian','othrace')], 7, sum) >= 1
+dat$anyrace <- as.integer(apply(
+  dat[, c('white','black','asian_nhpi','asian','othrace')], 1, sum) >= 1)
+dat$race[dat$anyrace==1]<-7
 
 head(dat)
 
