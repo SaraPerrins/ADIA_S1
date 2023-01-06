@@ -5,25 +5,24 @@ dat <- read.csv('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_w.csv'
 colnames(dat)[colnames(dat)%in%c('childid','biryear_xrnd','ygender_xrnd')] <-
   c('id','yob', 'sex')
 
-
+dat$anyrace <- as.integer(apply(
+  dat[, c('white','black','asian_nhpi','asian','othrace')], 1, sum, na.rm = TRUE) >= 2)
 dat$race[dat$white==1]<-2
 dat$race[dat$black==1]<-3
 dat$race[dat$asian_nhpi==1]<-4
 dat$race[dat$asian==1]<-5
 dat$race[dat$othrace==1]<-6
 dat$race[dat$hisp==1]<-1
-dat$anyrace <- as.integer(apply(
-  dat[, c('white','black','asian_nhpi','asian','othrace')], 1, sum) >= 1)
 dat$race[dat$anyrace==1]<-7
 
 head(dat)
 
 ### 1.- Cleaning, recoding
 #any Exposure
-dat$anyACE <- apply(
+dat$anyACE <- as.integer(apply(
   dat[, c('commstr',  'ecstand',  'bneedin',  'mloveaf',  'mphysab',
-        'msubstu',  'mmental',  'discrim',  'loveaff',  'incarce',
-        'divorce',  'physabu',  'subsuse',  'mentill')], 1, sum) >= 1
+          'msubstu',  'mmental',  'discrim',  'loveaff',  'incarce',
+          'divorce',  'physabu',  'subsuse',  'mentill')], 1, sum, na.rm = TRUE) >= 1)
 dat$anyACE[dat$commstr==0  & dat$ecstand==0  & dat$bneedin==0  & dat$mloveaf==0  & dat$mphysab==0  &
         dat$msubstu==0  & dat$mmental==0  & dat$discrim==0  & dat$loveaff==0  & dat$incarce==0  &
         dat$divorce==0  & dat$physabu==0  & dat$subsuse==0  & dat$mentill==0] <- 0
