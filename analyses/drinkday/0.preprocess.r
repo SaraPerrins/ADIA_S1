@@ -12,24 +12,22 @@ dat$race[dat$asian_nhpi==1]<-4
 dat$race[dat$asian==1]<-5
 dat$race[dat$othrace==1]<-6
 dat$race[dat$hisp==1]<-1
+dat$race <- apply(
+  dat[, c('white','black','asian_nhpi','asian','othrace')], 7, sum) >= 1
 
 head(dat)
 
 ### 1.- Cleaning, recoding
 #any Exposure
-dat <-
-  dat %>%
-  mutate(
-    anyACE=case_when(
-      commstr!=0 | ecstand!=0 | bneedin!=0 | mloveaf!=0 | mphysab!=0 |
-        msubstu!=0 | mmental!=0 | discrim!=0 | loveaff!=0 | incarce!=0 |
-        divorce!=0 | physabu!=0 | subsuse!=0 | mentill!=0  ~ 1,
-      commstr==0  & ecstand==0  & bneedin==0  & mloveaf==0  & mphysab==0  &
-        msubstu==0  & mmental==0  & discrim==0  & loveaff==0  & incarce==0  &
-        divorce==0  & physabu==0  & subsuse==0  & mentill==0   ~ 0
-    ))
-
+dat$anyACE <- apply(
+  dat[, c('commstr',  'ecstand',  'bneedin',  'mloveaf',  'mphysab',
+        'msubstu',  'mmental',  'discrim',  'loveaff',  'incarce',
+        'divorce',  'physabu',  'subsuse',  'mentill')], 1, sum) >= 1
+dat$anyACE[dat$commstr==0  & dat$ecstand==0  & dat$bneedin==0  & dat$mloveaf==0  & dat$mphysab==0  &
+        dat$msubstu==0  & dat$mmental==0  & dat$discrim==0  & dat$loveaff==0  & dat$incarce==0  &
+        dat$divorce==0  & dat$physabu==0  & dat$subsuse==0  & dat$mentill==0] <- 0
 table(dat$anyACE)
+
 
 ##factors
 dat$race <- factor(dat$race)
