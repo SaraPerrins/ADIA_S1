@@ -41,13 +41,13 @@ plotcp(tree,col='red' )
 #b.- prune based on complexity
 opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
 ptree <- prune(tree, cp = opcp)
-#rpart.plot(ptree)
-plot(as.party(ptree))
+rpart.plot(ptree)
+#plot(as.party(ptree))
 
 
 #png('output/tree.plot.unconditional.png',width = 480*4,heigh=480*4,res=300)
 png('C:/Users/21983/OneDrive - ICF/ADIA/study 1/output/tree.plot.unconditional.drinkdy.png',width = 480*4,heigh=480*4,res=300)
-plot(as.party(ptree))
+rpart.plot(ptree)
 dev.off()
 
 #===============================================================================
@@ -77,12 +77,12 @@ plotcp(tree,col='red' )
 #b.- prune based on complexity
 opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
 ptree.cond <- prune(tree, cp = opcp)
-#rpart.plot(ptree.cond)
-plot(as.party(ptree.cond))
+rpart.plot(ptree.cond)
+#plot(as.party(ptree.cond))
 
 
 png('C:/Users/21983/OneDrive - ICF/ADIA/study 1/output/tree.plot.conditional.drinkdy.png',width = 480*4,heigh=480*4,res=300)
-plot(as.party(ptree.cond))
+rpart.plot(ptree.cond)
 dev.off()
 
 #===============================================================================
