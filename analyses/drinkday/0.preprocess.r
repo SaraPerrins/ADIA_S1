@@ -2,8 +2,11 @@ library(tidyverse)
 
 dat <- read.csv('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_w.csv')
 #dat <- haven::read_sas('data/rtree_test1.sas7bdat')
-colnames(dat)[colnames(dat)%in%c('childid','biryear_xrnd','ygender_xrnd')] <-
-  c('id','yob', 'sex')
+#colnames(dat)[colnames(dat)%in%c('childid','biryear_xrnd','ygender_xrnd')] <-
+#  c('id','yob', 'sex')
+dat$id <-dat$childid
+dat$yob<-dat$biryear_xrnd
+dat$sex<-dat$ygender_xrnd
 
 dat$anyrace <- as.integer(apply(
   dat[, c('white','black','asian_nhpi','asian','othrace')], 1, sum, na.rm = TRUE) >= 2)
