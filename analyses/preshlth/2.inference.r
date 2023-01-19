@@ -17,6 +17,10 @@ library(tidyverse)
 library(survey)
 library(survival)
 
+options(digits = 3)
+options(scipen = 10^3)
+
+
 
 #i <- 'RES'
 i   <- 'NOTRES'
@@ -67,7 +71,7 @@ cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.c
 #controlling for  other covariates (excluding those detected)
 dat$node.cnd  <- dat$node.cls
 df1   <-  dat %>%  filter(training.sample == 0)
-sd.w  <- svydesign(id = ~id, weights = ~w, data = df1)
+sd.w  <- svydesign(id = ~id, weights = ~ w, data = df1)
 
 fit.cnd <- svyglm(y ~ node.cnd
    + female + agegrp
@@ -104,27 +108,28 @@ pred.cnd <- predict(fit.cnd,
                     
 cbind(unique(dat$node.cnd), pred.cnd, confint(pred.cnd))[order(unique(dat$node.cnd)),]
 
+#======================================================================================
+#3.- Causal tree
+#======================================================================================
+df1 <-  dat %>% filter(training.sample == 0)
 
-#-------------------------------------------------------------------------------
-#dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.causal.w.Rds")
-dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.causal.w.notres.Rds")
-dat$id <- 1:nrow(dat)
-df1 <-
-  dat %>%
-  filter(training.sample == 0)
-
-
-
-
-
-sdw    <- svydesign(id = ~id, weights = ~ w, data = df1)
-fit0   <- svyglm(as.numeric(y) ~ anyACE_T, 
+sdw    <- svydesign(id = ~id, weights = ~ wb, data = df1) #! use balanced weights
+fit0   <- svyglm(as.numeric(y) ~ anyACE_T,
                  design = sdw, family = gaussian) #!!use gaussian even for binnary
-coef(summary(fit0))
 
-fit1 <- svyglm(as.numeric(y) ~ anyACE_T:node.cau + node.cau  -1,
+# Is the difference in outcome
+# between kids who experience ACE_T and kids who  did not
+# statistically significant?
+coef(fit0)["anyACE_T"]
+confint(fit0)["anyACE_T", ]
+anova(fit0, update(fit0, . ~ . - anyACE_T))
+
+fit1 <- svyglm(as.numeric(y) ~ anyACE_T:node.cau + node.cau  - 1,
                design = sdw, family = gaussian)#use gaussian even for binnary
-tb   <- coef(summary(fit1))
-tb[grep("anyACETRUE:", rownames(tb)), ]
 
 anova(fit0, fit1)
+
+cbind(unique(dat$node.cau),
+  coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
+  confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
+  )[order(unique(dat$node.cau)), ]

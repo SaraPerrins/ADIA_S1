@@ -263,5 +263,3 @@ table(dat$node.cau)
 #saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.causal.w.Rds")
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 saveRDS(dat, file = file_name)
-
-help(causalTree)
