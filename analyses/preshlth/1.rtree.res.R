@@ -4,237 +4,253 @@ library(partykit)
 library(rpart.plot)
 library(survey)
 library(causalTree)
-set.seed(0203)
+
+options(digits = 3)
+options(scipen = 10^3)
+options(warn = 0)
+
+getwd()
+# Ye: un-comment this next line to change path to your own
+#setwd('C:/Users/21983/OneDrive - ICF/ADIA/study 1') 
 
 #i <- 'RES'
-i <- 'NOTRES'
+i   <- 'NOTRES'
 out <- 'preshlth'
 #out <- 'drinkdy'
+
+dat <- readRDS("data/finalvar.Rds")
+# 01/17/2023
+# Ye: I am thinking we can make the change here, rahter than in 0.preprocess
+dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+table(dat$DISC, useNA = "ifany")
+
+dat$y <- unlist(dat[, out])
 
 
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
 #===============================================================================
-#dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_RES.Rds')
-dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_NOTRES.Rds')
 summary(dat)
-#dat<-dat[dat$drinkdy<=20,]
+
 ### 0.- variables & roles
 # exposures
 x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmental',
        'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
-# traditional ACE
-#t <- c('incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
-# expanded ACE
-#e <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmental', 'discrim', 'loveaff')
+
 # covariates/confounding
 z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'urbnrur', 'mhhinco')
-dat$Z <- dat[,z]
-dat$X <- dat[,x]
-#dat$T <- dat[,t]
-#dat$E <- dat[,e]
-dat$y <- dat$preshlth        
-#dat$y <- dat$drinkdy
+       'rural', 'mixur',
+       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+    
+dat$Z <- dat[, z]
+dat$X <- dat[, x]
+summary(dat$Z)
+summary(dat$X)
 
-
-df0 <-
-  dat %>%
-  filter(training.sample==1)
-
-
-
-# the default action deletes all observations for which y is missing, but
-# keeps those in which one or more predictors are missing.
-
+df0 <-   dat %>%   filter(training.sample == 1)
 
 #a.- grow large tree
-tree <- with(df0, rpart(y ~ . , data=cbind(y,Z,X),cp=-1,xval = 10, weights=w))
-plotcp(tree,col='red' )
-#A good choice of cp for pruning is often the leftmost value for which the mean lies below the horizontal line.
+set.seed(0203)
+tree <- with(df0, rpart(y ~ .,
+  data = cbind(y, Z, X), cp = 0, xval = 5, weights = w))
+plotcp(tree, col = "red")
+
 
 #b.- prune based on complexity
-opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
+opcp  <- tree$cptable[, "CP"][which.min(tree$cptable[, "xerror"])]
 ptree <- prune(tree, cp = opcp)
-rpart.plot(ptree,roundint = F)
+rpart.plot(ptree, roundint = FALSE)
 
 
-png(paste0('C:/Users/21983/OneDrive - ICF/ADIA/study 1/output/tree.plot.unconditional.', out, '.w.', i,'.png'),width = 480*4,heigh=480*4,res=300)
-rpart.plot(ptree,roundint = F)
+png(
+  paste0("output/", out, "/tree.plot.unconditional.", i, ".png"),
+  width = 480 * 4, heigh = 480 * 4, res = 300)
+rpart.plot(ptree, roundint = FALSE)
 dev.off()
 
-dat$node.cls  <- factor(predict(as.party(ptree),type='node',newdata=dat))
+dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat))
 table(dat$node.cls)
 
-#saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.Rds")
-saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.notres.Rds")
+#saveRDS(dat, file = paste("data/NLS.tree.unconditional.w.notres.Rds")
 
 #===============================================================================
 ### 2.- Regression tree 'conditional' on covariates
 #===============================================================================
-#dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_RES.Rds')
-dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_NOTRES.Rds')
-summary(dat)
-
 # expousures and covaraites are treated differently
 # we explore expousures after adjusting for covariates
 #Reference:  Stanfill et al. (2019) https://doi.org/10.1177/1179597219858954
 
-x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmental',
-       'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
-# covariates/confounding
-z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'urbnrur', 'mhhinco')
-dat$Z <- dat[,z]
-dat$X <- dat[,x]
-dat$y <- dat$preshlth        
-#dat$y <- dat$drinkdy
+#Ye: The procedure can only adjust by a simplified version of Z
+#e.g., 3 categories of income
+# include only main covariates!
+
+dat$strata <- NULL
+dat <-
+  dat %>%
+  mutate(strata = paste0(
+    female, white, cut(yob, 3),
+    rural, cut(mhhinco, 3)
+    )) %>%
+  group_by(strata) %>%
+  mutate(n = n(), strata = if_else(n > 10, strata, "misc"))
+table(dat$strata)
 
 dat$W <-
-  dat %>%
-  mutate(strata=paste0(female,race,cut(yob,3))) %>%
+  dat %>% 
   group_by(strata) %>%
-  summarize(across(c(all_of(x)),~.x-weighted.mean(.x,w,na.rm=T))) %>%
+  summarize(across(c(all_of(x)), ~ .x - weighted.mean(.x, w, na.rm = TRUE))) %>%
   ungroup %>%
   select(-1)
 
-df0 <-
-  dat %>%
-  filter(training.sample==1)
 
 
-#summary(df0$cw)
-#df0 <-  df0 %>%  filter(!is.na(cw))
+df0 <- dat %>% filter(training.sample == 1)
+
+
 
 #a.- grow large tree
-#tree <- with(df0, rpart(y ~ . , data=cbind(y,W),cp=-1, weights=w))
-tree <- with(df0, rpart(y ~ . , data=cbind(y,W),cp = -1,weights=w))
-plotcp(tree,col='red' )
-#A good choice of cp for pruning is often the leftmost value for which the mean lies below the horizontal line.
+tree <- with(df0, rpart(y ~ ., 
+  data = cbind(y, W), cp = 0, xval = 5, weights = w))
+plotcp(tree, col = "red")
 
 #b.- prune based on complexity
-opcp <- tree$cptable[,'CP'][which.min(tree$cptable[,'xerror'])]
+opcp <- tree$cptable[, "CP"][which.min(tree$cptable[, "xerror"])]
 ptree.cond <- prune(tree, cp = opcp)
-rpart.plot(ptree.cond,roundint=F)
-#plot(as.party(ptree.cond))
+rpart.plot(ptree.cond, roundint = FALSE)
+# plot(as.party(ptree.cond))
 
 
-png(paste0('C:/Users/21983/OneDrive - ICF/ADIA/study 1/output/tree.plot.conditional.', out, '.nw.', i,'.png'),width = 480*4,heigh=480*4,res=300)
-rpart.plot(ptree.cond,roundint=F)
+png(
+  paste0("output/", out, "/tree.plot.conditional", i, ".png"),
+  width = 480 * 4, heigh = 480 * 4, res = 300)
+rpart.plot(ptree.cond, roundint = FALSE)
 dev.off()
 
-dat$node.cnd  <- factor(predict(as.party(ptree.cond),type='node',newdata=dat))
+dat$node.cnd <- factor(
+  predict(as.party(ptree.cond),
+    type = "node", newdata = dat)
+    )
 table(dat$node.cnd)
-
-#saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.conditional.nw.Rds")
-
 
 #===============================================================================
 ### 3.- A casual tree
 #===============================================================================
-#dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_RES.Rds')
-dat <- readRDS('C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/finalvar_NOTRES.Rds')
-summary(dat)
-#dat<-dat[dat$drinkdy<=20,]
-dim(dat)
-summary(dat)
+### 01/17/23 Causal tree needs complete info on ACE_T
+#one solution is to collpase certainly unexposed with expousure unknown
+dat$anyACE_T[is.na(dat$anyACE_T)] <- 0
+table(dat$anyACE_T)
+#an alternative solution would be imputation
+#anyACE_T_list  <- c('incarce', 'divorce',  'physabu',  'subsuse',  'mentill')
+#table(dat$anyACE_T, apply(is.na(dat[, anyACE_T_list]), 1, sum))
+#for example 0 if only 1 out of 5 missing
 
 
-### . Find balancing weights among those with and without any ACEs
+### a. Find balancing weights among those with and without any ACEs
+#Entropy Balancing
+#Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
+source("R/ebw.r")
 
-#Approximate Balancing Weights (these are an alternative to entropy balancing)
-#Reference:  https://doi.org/10.48550/arXiv.2007.09056
-source('C:/Users/21983/OneDrive - ICF/ADIA/study 2/Program/find.weights.r')
-
-# In orther to balance the missing pattern we need to
+# In orther to balance the missing pattern we need to:
 # for categorical variables, create an NA category (addNA)
-# this should inlcude binary variables (even if not declared as factors)
+# this should inlcude binary varaibles not declared as such
 # for continuous, add indicator is.na and impute mean
-x <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'urbnrur', 'mhhinco')
-dat$y <- dat$preshlth  
-#dat$y  <- dat$drinkdy
-
-dat$X <-
-  dat[,x] %>%
-  mutate(across(where(is.factor),addNA,ifany=T))  %>%
-  mutate(across(where(~ is.numeric(.x) && any(is.na(.x)) && n_distinct(.x)==2), ~addNA(factor(.x)))) %>%
+dat$C <-
+  dat$Z %>%
+  mutate(across(where(is.factor), addNA, ifany = TRUE))  %>%
+  mutate(across(where(~ is.numeric(.x) && any(is.na(.x)) && n_distinct(.x)==2), ~ addNA(factor(.x)))) %>%
   mutate(across(where(~ is.numeric(.x) && any(is.na(.x))), is.na,.names = 'NA_{.col}')) %>%
-  mutate(across(where(is.numeric),~ replace(., is.na(.),mean(., na.rm=T))))  %>%
-  model.matrix(~., .) %>%
+  mutate(across(where(is.numeric),~ replace(.,is.na(.),mean(.,na.rm=T))))  %>%
+  model.matrix(~.,.) %>%
   .[, -1]
+colMeans(dat$C)
+# will not balance very rare attributes (les than 1%)
+dat$C <- dat$C[, colMeans(dat$C) > .01]
+# NA black, etc. are repetead
+dat$C <- dat$C[, !colnames(dat$C) %in%
+  c("NA_whiteTRUE", "NA_hispTRUE", "NA_asianTRUE",
+  "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
+  "NA_mixurTRUE")]
+colMeans(dat$C)
 
 
+tgt  <- colMeans(dat$C); tgt
+sapply(split(dat, dat$anyACE_T), \(D) with(D, colMeans(D$C)))
 
-#weights add up to 1 in each group
-tgt  <- colMeans(dat$X)
-sd2  <- apply(dat$X, 2, function(v) if(mean(v) < .05) {sqrt(.05 * .95)} else {sd(v)})
-phiX <- scale(dat$X, center = tgt, scale = sd2)
-dat$w[dat$anyACE_T == 1] <- find.weights(phiX[dat$anyACE_T == 1, ], lambda = 0.01)
-dat$w[dat$anyACE_T == 0] <- find.weights(phiX[dat$anyACE_T == 0, ], lambda = 0.01)
-# Ye: lambda=0 give maximumn similarity
-# at the cost of more varaibility of the weights (i.e.,less effective sample size)
-# you coudl increase a bit, e.g. 0.05, to reduce weight  variability,
-#if you still get
-tapply(dat$preshlth , dat$anyACE_T, mean)
-tapply(dat$preshlth * dat$w, dat$anyACE_T, sum)
+ebw1 <- with(dat[dat$anyACE_T == 1, ],
+  ebw(id = id,
+    covariates = C,
+    target.margins = tgt,
+    base.weight = w)
+    )
+ebw0 <- with(dat[dat$anyACE_T == 0, ],
+  ebw(id = id,
+    covariates = C,
+    target.margins = tgt,
+    base.weight = w)
+    )
 
+dat$wb <- NULL
+dat  <- left_join(dat, rbind(ebw0, ebw1), by = "id")
 
-with(dat, data.frame(X,anyACE_T,w)) %>%
-  group_by(anyACE_T) %>%
-  summarize(across(everything()&!w, list(
-    mean,
-    ~ weighted.mean(.,w))
-  )) %>% t
-
-#stratfied random sample
-dat <-
-  dat %>%
-  mutate(strata = paste0(x, anyACE_T)) %>%
-  group_by(strata) %>%
-  mutate(training.sample = if_else(id %in% 
-                                     sample(unique(id), round(n_distinct(id)/2)), 1, 0)) %>%
-  ungroup
-table(dat$strata, dat$training.sample)
+summary(with(dat, data.frame(C, anyACE_T, w, wb)))
 
 
-#expanded ACE
-ace.e <-  c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmental',
-         'DISC', 'loveaff')
+with(dat, data.frame(C, w, wb)) %>%
+  group_by(dat$anyACE_T) %>%
+  summarize(across(all_of(colnames(dat$C)), list(
+  ~ weighted.mean(., w),
+  ~ weighted.mean(., wb))
+  ))
+
+###expanded ACE
+ace.e <-  c('commstr', 'ecstand', 'bneedin', 'mloveaf', 
+            'mphysab', 'msubstu', 'mmental',
+            'DISC', 'loveaff')
 
 summary(dat[, ace.e])
 dat$ACE.E <- dat[, ace.e]
 
+###case weights
+dat$cw[dat$anyACE_T == 1] <- dat$wb * sum(dat$anyACE_T)
+dat$cw[dat$anyACE_T == 0] <- dat$wb * sum(!dat$anyACE_T)
+tapply(dat$wb, dat$anyACE_T, sum)
+tapply(dat$cw, dat$anyACE_T, sum)
+
+# replace normalized weights (that add up to 1 in each arm)
+# with weigths that add up to sample size in eqach arm
+# For rtree the scale of the  weights is of no consequence
+# casual tree uses sample size of each arm
+# in the computation of criteria for splitting
+
 
 ### . find effect modifiers
-
-
 #Reference https://doi.org/10.48550/arXiv.1504.01132
-
-dat$cw <- dat$w * nrow(dat)
-df0 <-
-  dat %>%
-  filter(training.sample == 1)
-dim(df0)
-dim(dat)
-
-
+df0 <-  dat %>%  filter(training.sample == 1)
 
 ###Causal Trees (CT)
-tree <- with(df0, causalTree(y ~ .,
-                             data = cbind(y,ACE.E), treatment = anyACE_T, weights = cw,
-                             split.Rule = "CT", cv.option = "CT", xval = 5,
-                             split.Honest = TRUE, cv.Honest = TRUE, cp = 0)
+set.seed(0203)
+tree_causal <- with(df0, causalTree(y ~ .,
+                             data = cbind(y, ACE.E),
+                             treatment = anyACE_T,
+                             weights = cw,
+                             split.Rule = "fit",
+                             cv.option  = "fit",
+                              split.Honest = FALSE,
+                              cv.Honest = FALSE
+                             )
 )
-tree$cptable
+plotcp(tree_causal, col = "red")
+tree_causal$cptable
 
-opcp <- tree$cptable[, 1][which.min(tree$cptable[, 4])]
-ptree_causal <- prune(tree, cp = opcp)
+opcp <- tree_causal$cptable[, 1][which.min(tree_causal$cptable[, 4])]
+ptree_causal <- prune(tree_causal, cp = opcp)
+rpart.plot(ptree_causal, roundint = FALSE)
 
-rpart.plot(ptree_causal,roundint=F) #Ye : chose the plot you like to save below
 
-png(paste0('C:/Users/21983/OneDrive - ICF/ADIA/study 1/output/tree.plot.causal.', out, '.w.', i,'.png'),width = 480*4,heigh=480*4,res=300)
-rpart.plot(ptree_causal,roundint=F)
+png(
+  paste0("output/", out, "/tree.plot.causal", i, ".png"),
+  width = 480 * 4, heigh = 480 * 4, res = 300)
+rpart.plot(ptree_causal, roundint = FALSE)
 dev.off()
 
 dat$node.cau  <- factor(
@@ -242,9 +258,10 @@ dat$node.cau  <- factor(
           type = "node", newdata = dat))
 table(dat$node.cau)
 
+
+#===========================================================================================
 #saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.causal.w.Rds")
-saveRDS(dat, file = "C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.causal.w.notres.Rds")
+file_name <- paste0("data/NLS.tree", out, i, ".Rds")
+saveRDS(dat, file = file_name)
 
-
-
-
+help(causalTree)

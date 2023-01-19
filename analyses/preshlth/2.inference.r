@@ -17,15 +17,22 @@ library(tidyverse)
 library(survey)
 library(survival)
 
-#dat <- readRDS('data/test.tree.Rds')
 
-#-------------------------------------------------------------------------------
+#i <- 'RES'
+i   <- 'NOTRES'
+out <- 'preshlth'
+#out <- 'drinkdy'
+
 #dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.Rds")
-dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.notres.Rds")
-
+#dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.notres.Rds")
+file_name <- paste0("data/NLS.tree", out, i, ".Rds")
+dat <- readRDS(file_name)
+#======================================================================================
+#1.- unconditional
+#======================================================================================
 table(dat$node.cls)
-tapply(dat$preshlth, dat$node.cls,function(x){round(c("mean" = mean(x, na.rm = TRUE),
-                                                      "median" = median(x, na.rm = TRUE)), digits = 1)})
+tapply(dat$y, dat$node.cls,function(x){round(c("mean" = mean(x, na.rm = TRUE),
+                                     "median" = median(x, na.rm = TRUE)), digits = 1)})
 
 df1 <-
   dat %>%
@@ -33,33 +40,69 @@ df1 <-
 summary(df1$w)
 
 sd.w     <- svydesign(id = ~id, weights = ~w, data = df1)
-fit.cls <- svyglm(y~ node.cls, design=sd.w)
+fit.cls  <- svyglm(y ~ node.cls, design = sd.w)
 
 summary(fit.cls)
-anova(fit.cls,update(fit.cls,.~1))
-pred.cls <- predict(fit.cls,newdata=data.frame(node.cls=unique(dat$node.cls)))
-cbind(pred.cls,confint(pred.cls))
+anova(fit.cls, update(fit.cls, . ~ 1))
+
+pred.cls <- predict(fit.cls,
+  newdata = data.frame(node.cls = unique(dat$node.cls)))
+
+cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+
 
 #with(df1,ftable(ACEmentalill,female,ACEphysharm,node.cls))
 
-#-------------------------------------------------------------------------------
-dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.conditional.nw.Rds")
+#======================================================================================
+#2.- conditional
+#======================================================================================
 
-dat$w <- 1
+#dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.conditional.nw.Rds")
 
-df1 <-
-  dat %>%
-  filter(training.sample == 0)
-#df1$node.cnd  <- df1$node.cls
-sd.w     <- svydesign(id = ~id, weights = ~w, data = df1)
-fit.cnd <- svyglm(y~ node.cnd + female+agegrp+black+white+hisp+asian+asian_nhpi+othrace+mhighgd_bin+urbnrur+mhhinco, design=sd.w)
+#dat$w <- 1 #why would be overide the weights ??
+
+
+### Since we did not find any predictor condtional
+# we will test what we found using classical tree 
+#controlling for  other covariates (excluding those detected)
+dat$node.cnd  <- dat$node.cls
+df1   <-  dat %>%  filter(training.sample == 0)
+sd.w  <- svydesign(id = ~id, weights = ~w, data = df1)
+
+fit.cnd <- svyglm(y ~ node.cnd
+   + female + agegrp
+   + black + white + hisp + asian + asian_nhpi + othrace +
+   + mhighgd_bin
+   + rural + mixur
+   #+ mhhinco,
+  , design = sd.w)
 summary(fit.cnd)
-anova(fit.cnd,update(fit.cnd,.~1))
+anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
 
-pred.cnd <- predict(fit.cnd,newdata=data.frame(node.cnd=unique(dat$node.cnd),
-                                               female=1, race=unique(dat$race)[1],ageo=mean(dat$ageo)))
-cbind(pred.cnd,confint(pred.cnd))
+summary(fit.cnd$data)
+unique(dat$node.cnd)
 
+summary(dat[, all.vars(formula(fit.cnd))])
+table(dat$urbnrur)
+
+pred.cnd <- predict(fit.cnd,
+              newdata = data.frame(node.cnd = unique(dat$node.cnd),
+                                   female = 1,
+                                   agegrp = mean(dat$agegrp, na.rm = TRUE),
+                                   black = 0,
+                                   white = 0,
+                                   hisp = 1,
+                                   asian = 0,
+                                   asian_nhpi = 0,
+                                   othrace = 0,
+                                   mhighgd_bin = 0,
+                                   rural = 0,
+                                   mixur = 0,
+                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   )
+                    )
+                    
+cbind(unique(dat$node.cnd), pred.cnd, confint(pred.cnd))[order(unique(dat$node.cnd)),]
 
 
 #-------------------------------------------------------------------------------
