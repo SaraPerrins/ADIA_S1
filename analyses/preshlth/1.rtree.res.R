@@ -176,6 +176,7 @@ colMeans(dat$C)
 tgt  <- colMeans(dat$C); tgt
 sapply(split(dat, dat$anyACE_T), \(D) with(D, colMeans(D$C)))
 
+
 ebw1 <- with(dat[dat$anyACE_T == 1, ],
   ebw(id = id,
     covariates = C,
@@ -211,10 +212,12 @@ summary(dat[, ace.e])
 dat$ACE.E <- dat[, ace.e]
 
 ###case weights
-dat$cw[dat$anyACE_T == 1] <- dat$wb * sum(dat$anyACE_T)
-dat$cw[dat$anyACE_T == 0] <- dat$wb * sum(!dat$anyACE_T)
+dat$cw <- NA
+dat$cw[dat$anyACE_T == 1] <- dat$wb[dat$anyACE_T == 1]  * sum(dat$anyACE_T)
+dat$cw[dat$anyACE_T == 0] <- dat$wb[dat$anyACE_T == 0] * sum(!dat$anyACE_T)
 tapply(dat$wb, dat$anyACE_T, sum)
 tapply(dat$cw, dat$anyACE_T, sum)
+
 
 # replace normalized weights (that add up to 1 in each arm)
 # with weigths that add up to sample size in eqach arm
@@ -241,10 +244,15 @@ tree_causal <- with(df0, causalTree(y ~ .,
 )
 plotcp(tree_causal, col = "red")
 tree_causal$cptable
-
+ 
 opcp <- tree_causal$cptable[, 1][which.min(tree_causal$cptable[, 4])]
+opcp <- tree_causal$cptable[, 1][2] #subsequent split is nonsensical 
+
 ptree_causal <- prune(tree_causal, cp = opcp)
 rpart.plot(ptree_causal, roundint = FALSE)
+
+
+
 
 
 png(

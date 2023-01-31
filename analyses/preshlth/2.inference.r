@@ -133,3 +133,27 @@ cbind(unique(dat$node.cau),
   coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
+
+
+table(dat$anyACE_T)
+table(dat$bneedin)
+table(dat$bneedin)
+
+#======================================================================
+
+dat$W <- NA
+dat$W[dat$bneedin == 0 & dat$anyACE_T == 0] <- 0
+dat$W[dat$bneedin == 0 & dat$anyACE_T == 1] <- 1
+dat$W[dat$bneedin == 1 & dat$anyACE_T == 1] <- 2
+
+
+
+
+df1 <-  dat %>% filter(training.sample == 0)
+
+sdw    <- svydesign(id = ~id, weights = ~ wb, data = df1)
+
+fit3   <- svyglm(as.numeric(y) ~ factor(W),
+                 design = sdw, family = gaussian)
+
+summary(fit3 )
