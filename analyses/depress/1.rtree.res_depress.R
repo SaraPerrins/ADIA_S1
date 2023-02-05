@@ -36,11 +36,11 @@ table(dat$DISC, useNA = "ifany")
 dat$y <- unlist(dat[, out])
 
 #to produce graphics with yes/no run the code below
-dat$bneedin <- factor(dat$bneedin, labels=c("no", 1="yes"))
-dat$commstr <- factor(dat$commstr, labels=c("no", "yes"))
-dat$physabu <- factor(dat$physabu, labels=c("no", "yes"))
-dat$mentill <- factor(dat$mentill, labels=c("no", "yes"))
-dat$loveaff <- factor(dat$loveaff, labels=c("no", "yes"))
+#dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
+#dat$commstr <- factor(dat$commstr, labels=c("no", "yes"))
+#dat$physabu <- factor(dat$physabu, labels=c("no", "yes"))
+#dat$mentill <- factor(dat$mentill, labels=c("no", "yes"))
+#dat$loveaff <- factor(dat$loveaff, labels=c("no", "yes"))
 
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
