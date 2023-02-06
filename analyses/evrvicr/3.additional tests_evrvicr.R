@@ -55,7 +55,9 @@ source("R/ebw.r")
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
-z <- c("female", "agegrp", "white", "hisp")
+z <- c("female", "agegrp", "white", "hisp", "black", "asian", "asian_nhpi", "othrace", "mhighgd_bin",
+       "rural", "mixur",
+       "mhhinco")
 #, "agegrp", 
 #      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
 #      "mhighgd_bin",
