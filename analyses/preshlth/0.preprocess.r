@@ -4,8 +4,8 @@ getwd()
 # Ye: un-comment this next line to change path to your own
 #setwd('C:/Users/21983/OneDrive - ICF/ADIA/study 1') 
 
-#(using 01.10 instead of 01.09 as was coded, OK?)
-dat <- read.csv('data/finalvar_01.10.2023.csv')
+#(using 01.30 - most recent flat file)
+dat <- read.csv('data/finalvar_01.30.2023.csv')
 summary(dat)
 summary(dat$w)
 summary(dat$bneedin)
