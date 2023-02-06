@@ -75,7 +75,7 @@ df1   <-  dat %>%  filter(training.sample == 0)
 sd.w  <- svydesign(id = ~id, weights = ~ w, data = df1)
 
 fit.cnd <- svyglm(y ~ node.cnd
-   #+ female 
+   #+ female - female commented out because it was identified in classical tree
    + agegrp
    + black + white + hisp + asian + asian_nhpi + othrace +
    + mhighgd_bin
