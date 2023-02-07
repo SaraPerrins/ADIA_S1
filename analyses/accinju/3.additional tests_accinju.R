@@ -174,7 +174,7 @@ sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
 #-------------------------------------------------------------------
 ###c.1.-  basic fit
 #-------------------------------------------------------------------
-fit0   <- svyglm(y ~ ace_ocs, design = sdw, family = gaussian)
+fit0   <- svyglm(y ~ ace_ocs, design = sdw, family = quasibinomial)
 coef(summary(fit0))[2:4, ]
 
 #saving the output in nice format
@@ -186,7 +186,7 @@ data.frame(Contrast = tests,
   gtsave(paste0("output/test0", out, i, ".html"))
 
 
-pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp))
+pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp),type = c("response"))
 cbind(pred0, confint(pred0))
 
 #saving the output in nice format
@@ -205,7 +205,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                    + mhighgd_bin
                  + rural + mixur
                  + mhhinco
-                 , design = sdw)
+                 , design = sdw, family =quasibinomial)
 
 coef(summary(fit_dr))[2:4, ]
 
@@ -231,7 +231,8 @@ pred_dr <- predict(fit_dr,
                                         mhighgd_bin = 0,
                                         rural = 0,
                                         mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE),
+                                        type = c("response")
                    )
 )
 
