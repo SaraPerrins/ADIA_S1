@@ -55,7 +55,7 @@ pred.cls <- predict(fit.cls,
 
 cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
 #to find sample size
-table(df1$node.cls)
+table(df1$node.cls[!is.na(df1$y)])
 #with(df1,ftable(ACEmentalill,female,ACEphysharm,node.cls))
 
 #======================================================================================
@@ -110,6 +110,9 @@ pred.cnd <- predict(fit.cnd,
                     
 cbind(unique(dat$node.cnd), pred.cnd, confint(pred.cnd))[order(unique(dat$node.cnd)),]
 table(df1$node.cnd)
+#to find sample size
+#those with missing covariates are going to be dropped
+table(df1$node.cnd[complete.cases(df1[,all.vars(formula(fit.cnd))])])
 #======================================================================================
 #3.- Causal tree
 #======================================================================================
@@ -136,3 +139,5 @@ cbind(unique(dat$node.cau),
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
 table(df1$node.cau)
+#to find sample size
+table(df1$node.cau[complete.cases(df1[,all.vars(formula(fit1))])])
