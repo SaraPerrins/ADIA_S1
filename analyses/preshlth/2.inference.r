@@ -16,6 +16,8 @@
 library(tidyverse)
 library(survey)
 library(survival)
+library(survival)
+library(gt)
 
 options(digits = 3)
 options(scipen = 10^3)
@@ -52,8 +54,14 @@ anova(fit.cls, update(fit.cls, . ~ 1))
 pred.cls <- predict(fit.cls,
   newdata = data.frame(node.cls = unique(dat$node.cls)))
 
-cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
 
+tb <- data.frame(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+tb
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cls", out, i, ".html"))
 
 #with(df1,ftable(ACEmentalill,female,ACEphysharm,node.cls))
 
@@ -129,10 +137,17 @@ fit1 <- svyglm(as.numeric(y) ~ anyACE_T:node.cau + node.cau  - 1,
 
 anova(fit0, fit1)
 
-cbind(unique(dat$node.cau),
+tb <- data.frame(unique(dat$node.cau),
   coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
+colnames(tb) <- c("Node", "Est.", "95%CI_LL", "95%CI_UL")
+
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cau", out, i, ".html"))
 
 
 table(dat$anyACE_T)

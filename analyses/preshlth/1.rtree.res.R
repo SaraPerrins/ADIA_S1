@@ -58,6 +58,7 @@ plotcp(tree, col = "red")
 
 #b.- prune based on complexity
 opcp  <- tree$cptable[, "CP"][which.min(tree$cptable[, "xerror"])]
+tree$cptable[which.min(tree$cptable[, "xerror"]),]
 ptree <- prune(tree, cp = opcp)
 rpart.plot(ptree, roundint = FALSE)
 
@@ -68,8 +69,10 @@ png(
 rpart.plot(ptree, roundint = FALSE)
 dev.off()
 
-dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat))
-table(dat$node.cls)
+rules <- partykit:::.list.rules.party(as.party(ptree))
+dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat)
+  , labels = rules)
+
 
 #saveRDS(dat, file = paste("data/NLS.tree.unconditional.w.notres.Rds")
 
@@ -261,10 +264,15 @@ png(
 rpart.plot(ptree_causal, roundint = FALSE)
 dev.off()
 
+
+rules <- partykit:::.list.rules.party(as.party(ptree_causal))
 dat$node.cau  <- factor(
-  predict(partykit:::as.party(ptree_causal),
-          type = "node", newdata = dat))
+  predict(partykit:::as.party(ptree_causal), type = "node", newdata = dat)
+          , labels = rules)
+
 table(dat$node.cau)
+
+
 
 
 #===========================================================================================
