@@ -54,6 +54,14 @@ pred.cls <- predict(fit.cls,
   newdata = data.frame(node.cls = unique(dat$node.cls)))
 
 cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#adding node labels
+tb <- data.frame(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cls", out, i, ".html"))
+
 #to find sample size
 table(df1$node.cls[!is.na(df1$y)])
 
@@ -110,6 +118,7 @@ pred.cnd <- predict(fit.cnd,
                     )
                     
 cbind(unique(dat$node.cnd), pred.cnd, confint(pred.cnd))[order(unique(dat$node.cnd)),]
+
 #to find sample size
 #those with missing covariates are going to be dropped
 table(df1$node.cnd[complete.cases(df1[,all.vars(formula(fit.cnd))])])
@@ -139,5 +148,16 @@ cbind(unique(dat$node.cau),
   coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
+#to add node labels
+tb <- data.frame(unique(dat$node.cau),
+                 coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
+                 confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
+)[order(unique(dat$node.cau)), ]
+colnames(tb) <- c("Node", "Est.", "95%CI_LL", "95%CI_UL")
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cau", out, i, ".html"))
 #to find sample size
 table(df1$node.cau[complete.cases(df1[,all.vars(formula(fit1))])])
