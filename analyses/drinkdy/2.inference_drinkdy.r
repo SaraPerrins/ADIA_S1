@@ -54,6 +54,13 @@ pred.cls <- predict(fit.cls,
   newdata = data.frame(node.cls = unique(dat$node.cls)))
 
 cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#adding node labels
+tb <- data.frame(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cls", out, i, ".html"))
 #to find sample size
 table(df1$node.cls[!is.na(df1$y)])
 #with(df1,ftable(ACEmentalill,female,ACEphysharm,node.cls))
@@ -139,5 +146,16 @@ cbind(unique(dat$node.cau),
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
 table(df1$node.cau)
+#adding node labels
+tb <- data.frame(unique(dat$node.cau),
+                 coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
+                 confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
+)[order(unique(dat$node.cau)), ]
+colnames(tb) <- c("Node", "Est.", "95%CI_LL", "95%CI_UL")
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cau", out, i, ".html"))
 #to find sample size
 table(df1$node.cau[complete.cases(df1[,all.vars(formula(fit1))])])
