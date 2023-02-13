@@ -110,7 +110,8 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     roundint=FALSE) 
 dev.off()
 
-dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat))
+rules <- partykit:::.list.rules.party(as.party(ptree))
+dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat), labels = rules)
 table(dat$node.cls)
 
 #saveRDS(dat, file = paste("data/NLS.tree.unconditional.w.notres.Rds")
@@ -276,6 +277,7 @@ tapply(dat$cw, dat$anyACE_T, sum)
 #Reference https://doi.org/10.48550/arXiv.1504.01132
 df0 <-  dat %>%  filter(training.sample == 1)
 
+#change to a factor here 
 ###Causal Trees (CT)
 #followed protocol to first try "CT" then "fit" then "TOT"
 set.seed(0203)
@@ -334,10 +336,13 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     branch.lwd = 2, # line width of branch lines
     roundint=FALSE) 
 dev.off()
+#change back to numeric here and make sure it comes back as 0,1 not 1,2 (if 1,2 subtract 1)
+#as.numeric
 
+rules <- partykit:::.list.rules.party(as.party(ptree_causal))
 dat$node.cau  <- factor(
   predict(partykit:::as.party(ptree_causal),
-          type = "node", newdata = dat))
+          type = "node", newdata = dat), labels = rules)
 table(dat$node.cau)
 
 
