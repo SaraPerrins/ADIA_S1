@@ -21,7 +21,7 @@ getwd()
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 out <- 'preshlth'
 #out <- 'depress'
 #out <- 'anxiety'
@@ -30,7 +30,8 @@ out <- 'preshlth'
 dat <- readRDS("data/finalvar.Rds")
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
-dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+#removing the switching of sensitivity discrim variable as we are now just using reason_discrim
+#dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
@@ -52,10 +53,10 @@ summary(dat)
 x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmental',
        'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
 
+#removing income below 02/18/2023
 # covariates/confounding
 z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'rural', 'mixur',
-       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+       'rural', 'mixur') 
     
 dat$Z <- dat[, z]
 dat$X <- dat[, x]
@@ -111,8 +112,9 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     branch.lwd = 2, # line width of branch lines
     roundint=FALSE) 
 dev.off()
-
-dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat))
+#adding node labels
+rules <- partykit:::.list.rules.party(as.party(ptree))
+dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat), labels = rules)
 table(dat$node.cls)
 
 #saveRDS(dat, file = paste("data/NLS.tree.unconditional.w.notres.Rds")
@@ -334,10 +336,11 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     branch.lwd = 2, # line width of branch lines
     roundint=FALSE) 
 dev.off()
-
+#adding node labels
+rules <- partykit:::.list.rules.party(as.party(ptree_causal))
 dat$node.cau  <- factor(
   predict(partykit:::as.party(ptree_causal),
-          type = "node", newdata = dat))
+          type = "node", newdata = dat), labels = rules)
 table(dat$node.cau)
 
 
