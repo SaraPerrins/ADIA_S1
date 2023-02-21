@@ -12,6 +12,8 @@
 #library(devtools)
 #install_github("susanathey/causalTree")
 #https://doi.org/10.48550/arXiv.1504.01132
+#install.packages('gt')
+library(gt)
 library(tidyverse)
 library(survey)
 library(survival)
@@ -22,7 +24,7 @@ options(scipen = 10^3)
 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 out <- 'preshlth'
 #out <- 'depress'
 #out <- 'anxiety'
@@ -54,6 +56,13 @@ pred.cls <- predict(fit.cls,
   newdata = data.frame(node.cls = unique(dat$node.cls)))
 
 cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#adding node labels
+tb <- data.frame(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cls", out, i, ".html"))
 #to find sample size
 table(df1$node.cls[!is.na(df1$y)])
 #with(df1,ftable(ACEmentalill,female,ACEphysharm,node.cls))
@@ -80,7 +89,7 @@ fit.cnd <- svyglm(y ~ node.cnd
    + black + white + hisp + asian + asian_nhpi + othrace +
    + mhighgd_bin
    + rural + mixur
-   #+ mhhinco, identified in classical tree
+   #+ mhhinco, no longer using as a covariate 02/18/2023
   , design = sd.w)
 summary(fit.cnd)
 anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
@@ -103,8 +112,9 @@ pred.cnd <- predict(fit.cnd,
                                    othrace = 0,
                                    mhighgd_bin = 0,
                                    rural = 0,
-                                   mixur = 0,
-                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   mixur = 0
+                                   #,
+                                   #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                                    )
                     )
                     
@@ -138,5 +148,16 @@ cbind(unique(dat$node.cau),
   coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
+#adding node labels
+tb <- data.frame(unique(dat$node.cau),
+                 coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
+                 confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
+)[order(unique(dat$node.cau)), ]
+colnames(tb) <- c("Node", "Est.", "95%CI_LL", "95%CI_UL")
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cau", out, i, ".html"))
 #to find sample size
 table(df1$node.cau[complete.cases(df1[,all.vars(formula(fit1))])])
