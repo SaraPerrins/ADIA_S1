@@ -9,7 +9,7 @@ options(digits = 3)
 options(scipen = 10^3)
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'reason_discrim'
 #out <- 'depress'
 out <- 'preshlth'
 #out <- 'drinkdy'
@@ -69,6 +69,11 @@ source("R/ebw.r")
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
+table(dat$white, dat$hisp)
+#create white non hispanic variable here to use as covariate
+#dat$white_nonhisp [dat$white==1 & dat$hisp==0] <- 1
+#dat$white_nonhisp [(dat$white==1 & dat$hisp==1) | (dat$white==0)] <- 0
+#table(dat$white_nonhisp)
 z <- c("female", "agegrp", "white")
 #, "agegrp", 
  #      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
@@ -215,7 +220,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco removing income as covariate 02/18/2023
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -241,8 +246,9 @@ pred_dr <- predict(fit_dr,
                                         othrace = 0,
                                         mhighgd_bin = 0,
                                         rural = 0,
-                                        mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mixur = 0
+                                        #,
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
@@ -290,8 +296,10 @@ source("R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 z <- c("female", "agegrp", "white", "hisp", "black", "asian","asian_nhpi", "othrace", "mhighgd_bin"
-       ,"rural", "mixur",
-       "mhhinco")
+       ,"rural", "mixur"
+       #,
+       #"mhhinco" removing income as covariate
+       )
 #, "agegrp", 
 #      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
 #      "mhighgd_bin",
@@ -437,7 +445,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco removing income as covariate
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -463,8 +471,9 @@ pred_dr <- predict(fit_dr,
                                         othrace = 0,
                                         mhighgd_bin = 0,
                                         rural = 0,
-                                        mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mixur = 0
+                                        #,
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
