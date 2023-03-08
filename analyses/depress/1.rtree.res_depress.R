@@ -21,7 +21,7 @@ getwd()
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'preshlth'
 out <- 'depress'
 #out <- 'anxiety'
@@ -30,7 +30,8 @@ out <- 'depress'
 dat <- readRDS("data/finalvar.Rds")
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
-dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+#commenting out change of discrimination variable below 02/18/2023
+#dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
@@ -53,9 +54,12 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
        'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
 
 # covariates/confounding
+#removing hh income as a covariate below 02/18/2023
 z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'rural', 'mixur',
-       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+       'rural', 'mixur'
+       #,
+       #'mhhinco' removing income as covariate 02/18/2023
+       ) # Ye: I replaced income with income adjusted in preprocess 01/18/2023
     
 dat$Z <- dat[, z]
 dat$X <- dat[, x]
@@ -137,7 +141,7 @@ dat <-
   dat %>%
   mutate(strata = paste0(
     female, white, cut(yob, 3),
-    rural, cut(mhhinco, 3)
+    rural, cut(mhhinco, 3) #we are not using this tree so I am not updating code to remove hh income
     )) %>%
   group_by(strata) %>%
   mutate(n = n(), strata = if_else(n > 10, strata, "misc"))

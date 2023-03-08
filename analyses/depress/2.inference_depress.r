@@ -22,7 +22,7 @@ options(scipen = 10^3)
 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'preshlth'
 out <- 'depress'
 #out <- 'anxiety'
@@ -89,7 +89,8 @@ fit.cnd <- svyglm(y ~ node.cnd
    + black + white + hisp + asian + asian_nhpi + othrace +
    + mhighgd_bin
    + rural + mixur
-   + mhhinco,
+   #+ mhhinco no longer using as a covariate 02/18/2023
+   ,
    design = sd.w)
 summary(fit.cnd)
 anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
@@ -112,8 +113,9 @@ pred.cnd <- predict(fit.cnd,
                                    othrace = 0,
                                    mhighgd_bin = 0,
                                    rural = 0,
-                                   mixur = 0,
-                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   mixur = 0
+                                   #,
+                                   #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate 02/18/2023
                                    )
                     )
                     

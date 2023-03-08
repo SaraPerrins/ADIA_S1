@@ -9,7 +9,7 @@ options(digits = 3)
 options(scipen = 10^3)
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 out <- 'depress'
 #out <- 'preshlth'
 #out <- 'drinkdy'
@@ -72,12 +72,12 @@ source("R/ebw.r")
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
-z <- c("female", "agegrp", "white", "hisp")
+z <- c("female", "agegrp", "white")
 #, "agegrp", 
  #      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
  #      "mhighgd_bin",
  #      "rural", "mixur",
- #      "mhhinco")
+ #      "mhhinco") with the sample sizes in the classical tree we are using our "emergency" list of covariates
 # Ye: I replaced income with income adjusted in preprocess 01/18/2023
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
@@ -218,7 +218,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco removing income as covariate 02/18/2023
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -244,8 +244,9 @@ pred_dr <- predict(fit_dr,
                                         othrace = 0,
                                         mhighgd_bin = 0,
                                         rural = 0,
-                                        mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mixur = 0
+                                        #,
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
@@ -292,14 +293,11 @@ source("R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 z <- c("female", "agegrp", "white", "hisp", "black", "asian", "asian_nhpi", "othrace", "mhighgd_bin",
- "rural", "mixur",
- "mhhinco")
-#, "agegrp", 
-#      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
-#      "mhighgd_bin",
-#      "rural", "mixur",
-#      "mhhinco")
-# Ye: I replaced income with income adjusted in preprocess 01/18/2023
+ "rural", "mixur"
+ #,
+ #"mhhinco" removing income as a covariate 02/18/2023
+ )
+
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
 # for categorical variables, create an NA category (addNA)
@@ -439,7 +437,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco removing income as covariate 02/18/2023
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -465,8 +463,9 @@ pred_dr <- predict(fit_dr,
                                         othrace = 0,
                                         mhighgd_bin = 0,
                                         rural = 0,
-                                        mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mixur = 0
+                                        #,
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
