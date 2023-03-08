@@ -21,14 +21,15 @@ getwd()
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 out <- 'evrvicr'
 #out <- 'accinju'
 
 dat <- readRDS("data/finalvar.Rds")
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
-dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+#removing the switching of sensitivity discrim variable as we are now just using reason_discrim
+#dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
@@ -49,8 +50,10 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
 
 # covariates/confounding
 z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'rural', 'mixur',
-       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+       'rural', 'mixur'
+       #,
+       #'mhhinco' removing income as covariate 02/18/2023
+       ) # Ye: I replaced income with income adjusted in preprocess 01/18/2023
     
 dat$Z <- dat[, z]
 dat$X <- dat[, x]
@@ -109,8 +112,9 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     branch.lwd = 2, # line width of branch lines
     roundint=FALSE) 
 dev.off()
-
-dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat))
+#adding node labels
+rules <- partykit:::.list.rules.party(as.party(ptree))
+dat$node.cls  <- factor(predict(as.party(ptree), type = "node", newdata = dat), labels = rules)
 table(dat$node.cls)
 
 #saveRDS(dat, file = paste("data/NLS.tree.unconditional.w.notres.Rds")
@@ -131,7 +135,7 @@ dat <-
   dat %>%
   mutate(strata = paste0(
     female, white, cut(yob, 3),
-    rural, cut(mhhinco, 3)
+    rural, cut(mhhinco, 3) #not using conditional tree so no need to comment out income 
     )) %>%
   group_by(strata) %>%
   mutate(n = n(), strata = if_else(n > 10, strata, "misc"))
@@ -335,9 +339,11 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     roundint=FALSE) 
 dev.off()
 
+#adding node labels
+rules <- partykit:::.list.rules.party(as.party(ptree_causal))
 dat$node.cau  <- factor(
   predict(partykit:::as.party(ptree_causal),
-          type = "node", newdata = dat))
+          type = "node", newdata = dat), labels = rules)
 table(dat$node.cau)
 
 

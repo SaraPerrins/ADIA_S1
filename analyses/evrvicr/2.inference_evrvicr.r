@@ -22,7 +22,7 @@ options(scipen = 10^3)
 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 out <- 'evrvicr'
 #out <- 'accinju'
 
@@ -54,6 +54,13 @@ pred.cls <- predict(fit.cls,
   newdata = data.frame(node.cls = unique(dat$node.cls)),type = c("response"))
 
 cbind(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#adding node labels
+tb <- data.frame(unique(dat$node.cls), pred.cls, confint(pred.cls))[order(unique(dat$node.cls)),]
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cls", out, i, ".html"))
 #to find sample size
 table(df1$node.cls[!is.na(df1$y)])
 
@@ -84,7 +91,8 @@ fit.cnd <- svyglm(y ~ node.cnd
    + rural + mixur
    #income commented out because it is already in the tree (if income is not picked up in the tree we can 
    #include it here in the inference model)
-   + mhhinco,
+   #+ mhhinco removing income as covariate 02/18/2023
+   ,
    design = sd.w, family = quasibinomial)
 summary(fit.cnd)
 anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
@@ -100,7 +108,7 @@ table(dat$urbnrur)
 pred.cnd <- predict(fit.cnd,
               newdata = data.frame(node.cnd = unique(dat$node.cnd),
                                    female = 1,
-                                   agegrp = mean(dat$agegrp, na.rm = TRUE),
+                                   #agegrp = mean(dat$agegrp, na.rm = TRUE), age identified in tree so commented out
                                    black = 0,
                                    white = 0,
                                    hisp = 1,
@@ -109,8 +117,9 @@ pred.cnd <- predict(fit.cnd,
                                    othrace = 0,
                                    mhighgd_bin = 0,
                                    rural = 0,
-                                   mixur = 0,
-                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   mixur = 0
+                                   #,
+                                   #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                                    ),type = c("response")
                     )
                     
@@ -146,5 +155,16 @@ cbind(unique(dat$node.cau),
   coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
   confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
   )[order(unique(dat$node.cau)), ]
+#adding node labels
+tb <- data.frame(unique(dat$node.cau),
+                 coef(fit1)[grep("anyACE_T:", names(coef(fit1)))],
+                 confint(fit1)[grep("anyACE_T:", names(coef(fit1))), ]
+)[order(unique(dat$node.cau)), ]
+colnames(tb) <- c("Node", "Est.", "95%CI_LL", "95%CI_UL")
+#saving the output in nice format
+tb %>%
+  gt %>%
+  tab_header(title = "Predicted values") %>%
+  gtsave(paste0("output/predicted_cau", out, i, ".html"))
 #to find sample size
 table(df1$node.cau[complete.cases(df1[,all.vars(formula(fit1))])])
