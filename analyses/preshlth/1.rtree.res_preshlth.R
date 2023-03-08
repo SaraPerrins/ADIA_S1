@@ -39,10 +39,7 @@ dat$y <- unlist(dat[, out])
 #to have the tree graphs display yes/no uncomment the code below
 #dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
 #dat$commstr <- factor(dat$commstr, labels=c("no", "yes"))
-#dat$physabu <- factor(dat$physabu, labels=c("no", "yes"))
-#dat$mentill <- factor(dat$mentill, labels=c("no", "yes"))
 #dat$female <- factor(dat$female, labels=c("no", "yes"))
-#dat$subsuse <- factor(dat$subsuse, labels=c("no", "yes"))
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
 #===============================================================================
@@ -345,6 +342,6 @@ table(dat$node.cau)
 
 
 #===========================================================================================
-#saveRDS(dat, file = "C:/Users/55484/OneDrive - ICF/Documents/ADIA/RegressionTreeGraphics/data/NLS.tree.causal.w.Rds")
+#saveRDS(dat, file = "C:/Users/55484/OneDrive - ICF/Documents/ADIA/data/NLS.tree.causal.w.Rds")
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 saveRDS(dat, file = file_name)

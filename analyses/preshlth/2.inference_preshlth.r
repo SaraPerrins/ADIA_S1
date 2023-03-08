@@ -84,8 +84,8 @@ df1   <-  dat %>%  filter(training.sample == 0)
 sd.w  <- svydesign(id = ~id, weights = ~ w, data = df1)
 
 fit.cnd <- svyglm(y ~ node.cnd
-   #+ female gender identified in classical tree
-   #+ agegrp identified in classical tree
+   #+ female gender identified in classical tree so excluding here
+   + agegrp 
    + black + white + hisp + asian + asian_nhpi + othrace +
    + mhighgd_bin
    + rural + mixur
@@ -102,7 +102,7 @@ table(dat$urbnrur)
 
 pred.cnd <- predict(fit.cnd,
               newdata = data.frame(node.cnd = unique(dat$node.cnd),
-                                   female = 1,
+                                   #female = 1, female identified in tree so commented out
                                    agegrp = mean(dat$agegrp, na.rm = TRUE),
                                    black = 0,
                                    white = 0,
