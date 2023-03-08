@@ -9,7 +9,7 @@ options(digits = 3)
 options(scipen = 10^3)
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'evrvicr'
 out <- 'accinju'
 
@@ -35,10 +35,10 @@ dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             anyACE_T == 1 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1) ~ "ACE"
-             , anyACE_T == 1 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1) ~ "ACE + OCS"
-             , anyACE_T == 0 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1) ~ "OCS"
-             , anyACE_T == 0 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1) ~ "None"
+             anyACE_T == 1 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE"
+             , anyACE_T == 1 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE + OCS"
+             , anyACE_T == 0 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "OCS"
+             , anyACE_T == 0 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -57,13 +57,11 @@ source("R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 z <- c("female", "agegrp", "white", "hisp", "black", "asian", "asian_nhpi", "othrace", "mhighgd_bin",
-       "rural", "mixur",
-       "mhhinco")
-#, "agegrp", 
-#      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
-#      "mhighgd_bin",
-#      "rural", "mixur",
-#      "mhhinco")
+       "rural", "mixur"
+       #,
+       #"mhhinco" removing income as covariate
+       )
+
 # Ye: I replaced income with income adjusted in preprocess 01/18/2023
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
@@ -204,7 +202,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco no longer including covariate 02/18/2023
                  , design = sdw, family =quasibinomial)
 
 coef(summary(fit_dr))[2:4, ]
@@ -231,7 +229,8 @@ pred_dr <- predict(fit_dr,
                                         mhighgd_bin = 0,
                                         rural = 0,
                                         mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE),
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) remove income as covariate
+                                        #,
                                         type = c("response")
                    )
 )

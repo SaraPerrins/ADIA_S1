@@ -23,7 +23,7 @@ options(scipen = 10^3)
 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'evrvicr'
 out <- 'accinju'
 
@@ -91,7 +91,8 @@ fit.cnd <- svyglm(y ~ node.cnd
    + rural + mixur
    #income commented out because it is already in the tree (if income is not picked up in the tree we can 
    #include it here in the inference model)
-   + mhhinco,
+   #+ mhhinco no longer including income as covariate 02/18/2023
+   ,
    design = sd.w, family = quasibinomial)
 summary(fit.cnd)
 anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
@@ -107,7 +108,7 @@ table(dat$urbnrur)
 pred.cnd <- predict(fit.cnd,
               newdata = data.frame(node.cnd = unique(dat$node.cnd),
                                    female = 1,
-                                   agegrp = mean(dat$agegrp, na.rm = TRUE),
+                                   #agegrp = mean(dat$agegrp, na.rm = TRUE),
                                    black = 0,
                                    white = 0,
                                    hisp = 1,
@@ -116,8 +117,9 @@ pred.cnd <- predict(fit.cnd,
                                    othrace = 0,
                                    mhighgd_bin = 0,
                                    rural = 0,
-                                   mixur = 0,
-                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   mixur = 0
+                                   #,
+                                   #mhhinco = mean(dat$mhhinco, na.rm = TRUE) no longer including income as covariate 02/18/2023
                                    ),type = c("response")
                     )
                     
