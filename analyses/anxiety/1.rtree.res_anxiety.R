@@ -21,7 +21,7 @@ getwd()
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'preshlth'
 #out <- 'depress'
 out <- 'anxiety'
@@ -30,7 +30,8 @@ out <- 'anxiety'
 dat <- readRDS("data/finalvar.Rds")
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
-dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+#removing the switching of sensitivity discrim variable as we are now just using reason_discrim
+#dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
@@ -38,7 +39,11 @@ dat$y <- unlist(dat[, out])
 #to see yes/no on graphs run the code below
 #dat$female <- factor(dat$female, labels=c("no", "yes"))
 #dat$incarce <- factor(dat$incarce, labels=c("no", "yes"))
-#dat$loveaff <- factor(dat$loveaff, labels=c("no", "yes"))
+dat$loveaff <- factor(dat$loveaff, labels=c("no", "yes"))
+table(dat$loveaff, useNA = "ifany")
+#dat$mentill <- factor(dat$mentill, labels=c("no", "yes"))
+#dat$physabu <- factor(dat$physabu, labels=c("no", "yes"))
+#dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
 
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
@@ -52,8 +57,10 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
 
 # covariates/confounding
 z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'rural', 'mixur',
-       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+       'rural', 'mixur'
+       #,
+       #'mhhinco' removing income as covariate 02/18/2023
+       ) # Ye: I replaced income with income adjusted in preprocess 01/18/2023
     
 dat$Z <- dat[, z]
 dat$X <- dat[, x]
@@ -133,7 +140,7 @@ dat <-
   dat %>%
   mutate(strata = paste0(
     female, white, cut(yob, 3),
-    rural, cut(mhhinco, 3)
+    rural, cut(mhhinco, 3) #since we are not running this tree, income code does not need to be edited
     )) %>%
   group_by(strata) %>%
   mutate(n = n(), strata = if_else(n > 10, strata, "misc"))
@@ -340,8 +347,11 @@ dat$node.cau  <- factor(
   predict(partykit:::as.party(ptree_causal),
           type = "node", newdata = dat), labels = rules)
 table(dat$node.cau)
-
-
+table(dat$loveaff, useNA = "ifany")
+dat$loveaff <- as.numeric(dat$loveaff)
+table(dat$loveaff, useNA = "ifany")
+dat$loveaff <- dat$loveaff - 1
+table(dat$loveaff, useNA = "ifany")
 #===========================================================================================
 #saveRDS(dat, file = "C:/Users/55484/OneDrive - ICF/Documents/ADIA/RegressionTreeGraphics/data/NLS.tree.causal.w.Rds")
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
