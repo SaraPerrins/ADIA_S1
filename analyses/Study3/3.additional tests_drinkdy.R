@@ -6,11 +6,7 @@ library(gt)
 options(digits = 3)
 options(scipen = 10^3)
 
-#i <- 'RES'
 i   <- 'NOTRES'
-#out <- 'anxiety'
-#out <- 'depress'
-#out <- 'preshlth'
 out <- 'drinkdy'
 
 file_name <- paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/data/NLS.tree", out, i, ".Rds")
@@ -30,7 +26,7 @@ dim(dat)
 
 # the basis for the relevant group comes from CausalTree for this outcome
 # but  could come from the classical tree results for other outcomes
-#causal tree groups 
+
 dat <-
   dat %>%
   mutate(ace_ocs =
@@ -57,7 +53,11 @@ source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 
-z <- c("female", "agegrp", "white")
+test1 <- c("female", "agegrp", "black" , "white", "hisp", "asian", "asian_nhpi", "othrace", "mhighgd_bin", "rural", "mixur", "mhhinco")
+random = sample(test1,10)
+random
+
+z <- random #c("female", "agegrp", "white")
 
 #, "agegrp", 
 #      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
@@ -167,9 +167,6 @@ contrasts(dat$ace_ocs) <- MASS::ginv(t(mat))
 # 1. ACE vs. none
 # 2. ACE + OCE vs. ACE
 # 3. OCS vs. none
-
-
-
 
 ###declare design
 sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
