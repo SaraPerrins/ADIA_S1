@@ -6,7 +6,6 @@ library(gt)
 options(digits = 3)
 options(scipen = 10^3)
 
-#i <- 'RES'
 i   <- 'discrim_reason'
 out <- 'evrvicr'
 
@@ -32,10 +31,10 @@ dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             anyACE_T == 1 & !(bneedin == 1) ~ "ACE"
-             , anyACE_T == 1 &  (bneedin == 1) ~ "ACE + OCS"
-             , anyACE_T == 0 &  (bneedin == 1) ~ "OCS"
-             , anyACE_T == 0 & !(bneedin == 1) ~ "None"
+             anyACE_T == 1 & !(msubstu == 1 | mphysab == 1 | ecstand ==1 | bneedin == 1 | commstr == 1) ~ "ACE"
+             , anyACE_T == 1 &  (msubstu == 1 | mphysab == 1 | ecstand ==1 | bneedin == 1 | commstr == 1) ~ "ACE + OCS"
+             , anyACE_T == 0 &  (msubstu == 1 | mphysab == 1 | ecstand ==1 | bneedin == 1 | commstr == 1) ~ "OCS"
+             , anyACE_T == 0 & !(msubstu == 1 | mphysab == 1 | ecstand ==1 | bneedin == 1 | commstr == 1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -54,7 +53,11 @@ source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 
-z <- c("female", "agegrp", "white")
+test1 <- c("female", "agegrp", "black" , "white", "hisp", "asian", "asian_nhpi", "othrace", "mhighgd_bin", "rural", "mixur", "mhhinco")
+random = sample(test1,2)
+random
+
+z =random #c("female", "agegrp", "white")
 
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
@@ -111,7 +114,6 @@ weights <-
 colnames(weights)[2] <- "new_w"
 dat  <- left_join(dat, weights, by = "id")
 dat$new_w[is.na(dat$new_w)] <- 0
-
 
 tb_r <-
   with(dat, data.frame(C, w, new_w, ace_ocs)) %>%

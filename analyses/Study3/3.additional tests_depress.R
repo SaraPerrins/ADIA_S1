@@ -32,10 +32,10 @@ dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             (physabu ==1 | mentill==1) & !(bneedin ==1 | commstr==1) ~ "ACE"
-             , (physabu ==1 | mentill==1) &  (bneedin ==1 | commstr==1) ~ "ACE + OCS"
-             , !(physabu ==1 | mentill==1) &  (bneedin ==1 | commstr==1) ~ "OCS"
-             ,! (physabu ==1 | mentill==1) & !(bneedin ==1 | commstr==1) ~ "None"
+             anyACE_T == 1 & !(agegrp == 1) ~ "ACE"
+             , anyACE_T == 1 &  (agegrp == 1) ~ "ACE + OCS"
+             , anyACE_T == 0 &  (agegrp == 1) ~ "OCS"
+             , anyACE_T == 0 & !(agegrp == 1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -44,30 +44,24 @@ dat <-
 dim(dat)
 summary(dat)
 table(dat$female, useNA = "ifany")
-table(dat$black)
-table(dat$white)
-table(dat$hisp)
-table(dat$agegrp)
-table(dat$bneedin)
-table(dat$asian)
-table(dat$asian_nhpi)
-table(dat$othrace)
-table(dat$rural)
-table(dat$mhighgd_bin)
-table(dat$mixur)
-table(dat$mhighgd_bin, dat$female)
-table(dat$ace_ocs, useNA = "ifany")
-
-barplot(dat$female)
-        
+#table(dat$black)
+#table(dat$white)
+#table(dat$hisp)
+#table(dat$agegrp)
+#table(dat$bneedin)
+#table(dat$asian)
+#table(dat$asian_nhpi)
+#table(dat$othrace)
+#table(dat$rural)
+#table(dat$mhighgd_bin)
+#table(dat$mixur)
+#table(dat$mhighgd_bin, dat$female)
+#table(dat$ace_ocs, useNA = "ifany")
 
 test1 <- c("female", "agegrp", "black" , "white", "hisp", "asian", "asian_nhpi", "othrace", "mhighgd_bin", "rural", "mixur", "mhhinco")
-test2 <- c("female", "agegrp", "black" , "white", "hisp", "mhighgd_bin", "rural", "mixur", "mhhinco")
-test3 <- c("female", "agegrp", "black" , "white", "hisp", "mhighgd_bin", "rural", "mixur")
-test4 <- c("female", "agegrp", "black" , "white", "hisp", "mhighgd_bin", "rural")
-test5 <- c("female", "agegrp", "black" , "white", "hisp", "mhighgd_bin")
-test6 <- c("female", "agegrp", "black" , "white", "hisp")
-test7 <- c("agegrp", "black" , "white", "hisp")
+random = sample(test1,3)
+random
+# no error for "asian_nhpi"
 
 #========================================================================
 ### b. Find *balancing weights* so groups are similar
@@ -75,7 +69,7 @@ test7 <- c("agegrp", "black" , "white", "hisp")
 #Entropy Balancing, #Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
 
 source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
-z <- c("female", "agegrp", "white")
+z <- random  #c("female", "agegrp", "white")
 
 dat$Z <- dat[, z]
 
@@ -135,7 +129,6 @@ colnames(weights)[2] <- "new_w"       # commented out by KJ Liao to fix error me
 dat  <- left_join(dat, weights, by = "id")
 dat$new_w[is.na(dat$new_w)] <- 0
 
-
 tb_r <-
   with(dat, data.frame(C, w, new_w, ace_ocs)) %>%
   subset(!is.na(ace_ocs)) %>%
@@ -160,7 +153,7 @@ left_join(tb_r, tb_w, by = "var") %>% data.frame()
 left_join(tb_r, tb_w, by = "var", suffix = c(".raw", ".weighted")) %>%
   gt %>%
   tab_header(title = "Before and after weighting") %>%
-  gtsave(paste0("output/raw_weighted", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/raw_weighted", out, i, ".html"))
 
 
 #========================================================================
@@ -182,8 +175,6 @@ contrasts(dat$ace_ocs) <- MASS::ginv(t(mat))
 # 3. OCS vs. none
 
 
-
-
 ###declare design
 sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
 
@@ -199,7 +190,7 @@ data.frame(Contrast = tests,
            coef(summary(fit0))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test") %>%
-  gtsave(paste0("output/test0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test0", out, i, ".html"))
 
 
 pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp))
@@ -209,7 +200,7 @@ cbind(pred0, confint(pred0))
 data.frame(Group = grp, pred0, confint(pred0)) %>%
   gt %>%
   tab_header(title = "Predicted values") %>%
-  gtsave(paste0("output/pred0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred0", out, i, ".html"))
 
 
 #-------------------------------------------------------------------
@@ -231,7 +222,7 @@ data.frame(Contrast = tests,
            coef(summary(fit_dr))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test (Doubly robust)") %>%
-  gtsave(paste0("output/test_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test_dr", out, i, ".html"))
 
 
 pred_dr <- predict(fit_dr,
@@ -247,8 +238,6 @@ pred_dr <- predict(fit_dr,
                                         mhighgd_bin = 0,
                                         rural = 0,
                                         mixur = 0
-                                        #,
-                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
@@ -258,7 +247,7 @@ data.frame(Group = grp, pred_dr, confint(pred_dr))
 data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
-  gtsave(paste0("output/pred_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred_dr", out, i, ".html"))
 
 #========================================================================
 # repeat process for causal depression tree
@@ -378,7 +367,7 @@ left_join(tb_r, tb_w, by = "var") %>% data.frame()
 left_join(tb_r, tb_w, by = "var", suffix = c(".raw", ".weighted")) %>%
   gt %>%
   tab_header(title = "Before and after weighting") %>%
-  gtsave(paste0("output/raw_weighted", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/raw_weighted", out, i, ".html"))
 
 
 
@@ -400,9 +389,6 @@ contrasts(dat$ace_ocs) <- MASS::ginv(t(mat))
 # 2. ACE + OCE vs. ACE
 # 3. OCS vs. none
 
-
-
-
 ###declare design
 sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
 
@@ -418,8 +404,7 @@ data.frame(Contrast = tests,
            coef(summary(fit0))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test") %>%
-  gtsave(paste0("output/test0", out, i, ".html"))
-
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test0", out, i, ".html"))
 
 pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp))
 cbind(pred0, confint(pred0))
@@ -428,7 +413,7 @@ cbind(pred0, confint(pred0))
 data.frame(Group = grp, pred0, confint(pred0)) %>%
   gt %>%
   tab_header(title = "Predicted values") %>%
-  gtsave(paste0("output/pred0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred0", out, i, ".html"))
 
 
 #-------------------------------------------------------------------
@@ -439,7 +424,6 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 #+ mhhinco removing income as covariate 02/18/2023
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -450,7 +434,7 @@ data.frame(Contrast = tests,
            coef(summary(fit_dr))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test (Doubly robust)") %>%
-  gtsave(paste0("output/test_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test_dr", out, i, ".html"))
 
 
 pred_dr <- predict(fit_dr,
@@ -466,8 +450,6 @@ pred_dr <- predict(fit_dr,
                                         mhighgd_bin = 0,
                                         rural = 0,
                                         mixur = 0
-                                        #,
-                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
@@ -477,4 +459,4 @@ data.frame(Group = grp, pred_dr, confint(pred_dr))
 data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
-  gtsave(paste0("output/pred_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred_dr", out, i, ".html"))

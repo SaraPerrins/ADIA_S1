@@ -6,7 +6,6 @@ library(gt)
 options(digits = 3)
 options(scipen = 10^3)
 
-#i <- 'RES'
 i   <- 'discrim_reason'
 out <- 'preshlth'
 
@@ -23,18 +22,19 @@ dim(dat)
 #========================================================================
 #a.- create relevant groups
 #========================================================================
-
 # the basis for the relevant group comes from CausalTree for this outcome
 # but  could come from the classical tree results for other outcomes
 #causal tree groups 
+# From classical tree
+
 dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             anyACE_T == 1 & !(bneedin == 1) ~ "ACE"
-             , anyACE_T == 1 &  (bneedin == 1) ~ "ACE + OCS"
-             , anyACE_T == 0 &  (bneedin == 1) ~ "OCS"
-             , anyACE_T == 0 & !(bneedin == 1) ~ "None"
+             anyACE_T == 1 & !(divorce == 1) ~ "ACE"
+             , anyACE_T == 1 & (divorce == 1) ~ "ACE + OCS"
+             , anyACE_T == 0 & (divorce == 1) ~ "OCS"
+             , anyACE_T == 0 & !(divorce == 1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -45,18 +45,23 @@ table(dat$ace_ocs, useNA = "ifany")
 #========================================================================
 ### b. Find balancing weights so groups are similar
 #========================================================================
-#Entropy Balancing
-#Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
+#Entropy Balancing, #Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
 source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
 
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 
-z <- c("female", "agegrp", "white")
+test1 <- c("female", "agegrp", "black" , "white", "hisp", "asian", "asian_nhpi", "othrace", "mhighgd_bin", "rural", "mixur", "mhhinco")
+random = sample(test1,4)
+random
 
-# Ye: I replaced income with income adjusted in preprocess 01/18/2023
+z = random #c("female", "agegrp", "white")
+
 dat$Z <- dat[, z]
+dim(dat$Z)
+summary(dat$Z)
+
 # In orther to balance the missing pattern we need to:
 # for categorical variables, create an NA category (addNA)
 # this should inlcude binary varaibles not declared as such
@@ -78,6 +83,7 @@ dat$C <-
   model.matrix(~., .) %>%
   .[, -1]
 colMeans(dat$C)
+
 #edit 2/2 upped rare attribute threshhold to 5%
 # will not balance very rare attributes (les than 5%)
 dat$C <- dat$C[, colMeans(dat$C) > .05]
@@ -88,9 +94,8 @@ dat$C <- dat$C[, !colnames(dat$C) %in%
                    "NA_mixurTRUE")]
 colMeans(dat$C)
 
+# we can target any fixed population, here just overal mean, kids with average characteristics
 
-# we can target any fixed population
-# here just overal mean, kids with average characteristics
 tgt  <- colMeans(dat$C)
 cbind(
   sapply(split(dat, dat$ace_ocs), \(D) with(D, colMeans(D$C)))
@@ -109,7 +114,6 @@ weights <-
 colnames(weights)[2] <- "new_w"
 dat  <- left_join(dat, weights, by = "id")
 dat$new_w[is.na(dat$new_w)] <- 0
-
 
 tb_r <-
   with(dat, data.frame(C, w, new_w, ace_ocs)) %>%

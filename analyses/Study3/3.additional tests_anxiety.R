@@ -1,5 +1,3 @@
-#install.packages("gt")
-
 library(tidyverse)
 library(survey)
 library(survival)
@@ -29,19 +27,25 @@ dim(dat)
 # the basis for the relevant group comes from CausalTree for this outcome
 # but  could come from the classical tree results for other outcomes
 
-#classical tree for depression
+#classical tree for anxiety
 table(dat$physabu)
 table(dat$mentill)
 table(dat$bneedin)
 table(dat$incarce)
+
+table(dat$physabu)
+table(dat$mentill)
+table(dat$bneedin)
+table(dat$commstr)
+
 dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             (physabu ==1 | mentill==1 | incarce==1) & !(bneedin ==1) ~ "ACE"
-             , (physabu ==1 | mentill==1 | incarce==1) &  (bneedin ==1) ~ "ACE + OCS"
-             , !(physabu ==1 | mentill==1 | incarce==1) &  (bneedin ==1) ~ "OCS"
-             ,! (physabu ==1 | mentill==1 | incarce==1) & !(bneedin ==1) ~ "None"
+             (==1 | ==1 ) ~ "ACE"
+             , (==1 | ==1) &  (bneedin ==1) ~ "ACE + OCS"
+             , !(==1 | ==1) &  (bneedin ==1) ~ "OCS"
+             ,! (==1 | ==1) & !(bneedin ==1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -113,7 +117,6 @@ dat$C <- dat$C[, !colnames(dat$C) %in%
                    "NA_mixurTRUE")]
 colMeans(dat$C)
 
-
 # we can target any fixed population
 # here just overal mean, kids with average characteristics
 tgt  <- colMeans(dat$C)
@@ -159,8 +162,7 @@ left_join(tb_r, tb_w, by = "var") %>% data.frame()
 left_join(tb_r, tb_w, by = "var", suffix = c(".raw", ".weighted")) %>%
   gt %>%
   tab_header(title = "Before and after weighting") %>%
-  gtsave(paste0("output/raw_weighted", out, i, ".html"))
-
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/raw_weighted", out, i, ".html"))
 
 
 #========================================================================
@@ -181,9 +183,6 @@ contrasts(dat$ace_ocs) <- MASS::ginv(t(mat))
 # 2. ACE + OCE vs. ACE
 # 3. OCS vs. none
 
-
-
-
 ###declare design
 sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
 
@@ -199,7 +198,7 @@ data.frame(Contrast = tests,
            coef(summary(fit0))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test") %>%
-  gtsave(paste0("output/test0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test0", out, i, ".html"))
 
 
 pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp))
@@ -209,7 +208,7 @@ cbind(pred0, confint(pred0))
 data.frame(Group = grp, pred0, confint(pred0)) %>%
   gt %>%
   tab_header(title = "Predicted values") %>%
-  gtsave(paste0("output/pred0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred0", out, i, ".html"))
 
 
 #-------------------------------------------------------------------
@@ -231,7 +230,7 @@ data.frame(Contrast = tests,
            coef(summary(fit_dr))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test (Doubly robust)") %>%
-  gtsave(paste0("output/test_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test_dr", out, i, ".html"))
 
 
 pred_dr <- predict(fit_dr,
@@ -258,7 +257,7 @@ data.frame(Group = grp, pred_dr, confint(pred_dr))
 data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
-  gtsave(paste0("output/pred_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred_dr", out, i, ".html"))
 
 #========================================================================
 #causal anxiety
@@ -380,7 +379,7 @@ left_join(tb_r, tb_w, by = "var") %>% data.frame()
 left_join(tb_r, tb_w, by = "var", suffix = c(".raw", ".weighted")) %>%
   gt %>%
   tab_header(title = "Before and after weighting") %>%
-  gtsave(paste0("output/raw_weighted", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/raw_weighted", out, i, ".html"))
 
 
 
@@ -402,9 +401,6 @@ contrasts(dat$ace_ocs) <- MASS::ginv(t(mat))
 # 2. ACE + OCE vs. ACE
 # 3. OCS vs. none
 
-
-
-
 ###declare design
 sdw    <- svydesign(id = ~ id, weights = ~ new_w, data = dat)
 
@@ -420,7 +416,7 @@ data.frame(Contrast = tests,
            coef(summary(fit0))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test") %>%
-  gtsave(paste0("output/test0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test0", out, i, ".html"))
 
 
 pred0 <- predict(fit0, newdata = data.frame(ace_ocs = grp))
@@ -430,7 +426,7 @@ cbind(pred0, confint(pred0))
 data.frame(Group = grp, pred0, confint(pred0)) %>%
   gt %>%
   tab_header(title = "Predicted values") %>%
-  gtsave(paste0("output/pred0", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred0", out, i, ".html"))
 
 
 #-------------------------------------------------------------------
@@ -452,7 +448,7 @@ data.frame(Contrast = tests,
            coef(summary(fit_dr))[2:4, ]) %>%
   gt %>%
   tab_header(title = "Test (Doubly robust)") %>%
-  gtsave(paste0("output/test_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/test_dr", out, i, ".html"))
 
 
 pred_dr <- predict(fit_dr,
@@ -479,4 +475,4 @@ data.frame(Group = grp, pred_dr, confint(pred_dr))
 data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
-  gtsave(paste0("output/pred_dr", out, i, ".html"))
+  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred_dr", out, i, ".html"))

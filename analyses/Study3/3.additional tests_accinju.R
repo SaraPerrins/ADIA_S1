@@ -24,18 +24,18 @@ summary(dat)
 #========================================================================
 #a.- create relevant groups
 #========================================================================
-
 # the basis for the relevant group comes from CausalTree for this outcome
 # but  could come from the classical tree results for other outcomes
 #causal tree groups 
+
 dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             anyACE_T == 1 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE"
-             , anyACE_T == 1 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE + OCS"
-             , anyACE_T == 0 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "OCS"
-             , anyACE_T == 0 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "None"
+             anyACE_T == 1 & !(loveaff == 1 | mphysab == 1 ) ~ "ACE"
+             , anyACE_T == 1 &  (loveaff == 1 | mphysab == 1 ) ~ "ACE + OCS"
+             , anyACE_T == 0 &  (loveaff == 1 | mphysab == 1 ) ~ "OCS"
+             , anyACE_T == 0 & !(loveaff == 1 | mphysab == 1 ) ~ "None"
            )
          , ace_ocs = factor(ace_ocs)
          , ace_ocs = relevel(ace_ocs, ref = "None")
@@ -53,6 +53,7 @@ source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
+
 z <- c("female", "agegrp", "white")
 
 dat$Z <- dat[, z]
@@ -77,8 +78,9 @@ dat$C <-
   model.matrix(~., .) %>%
   .[, -1]
 colMeans(dat$C)
+
 #edit 2/2 upped rare attribute threshhold to 5%
-# will not balance very rare attributes (les than 5%)
+# will not balance very rare attributes (less than 5%)
 dat$C <- dat$C[, colMeans(dat$C) > .05]
 # NA black, etc. are repetead
 dat$C <- dat$C[, !colnames(dat$C) %in%
@@ -86,7 +88,6 @@ dat$C <- dat$C[, !colnames(dat$C) %in%
                    "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
                    "NA_mixurTRUE")]
 colMeans(dat$C)
-
 
 # we can target any fixed population
 # here just overal mean, kids with average characteristics
@@ -97,6 +98,7 @@ cbind(
   , tgt)
 
 grp <- c("None", "ACE", "ACE + OCS", "OCS")
+
 weights <-
   lapply(grp, \(g) {
     with(dat[!is.na(dat$ace_ocs) & dat$ace_ocs == g, ],
@@ -108,7 +110,6 @@ weights <-
 colnames(weights)[2] <- "new_w"
 dat  <- left_join(dat, weights, by = "id")
 dat$new_w[is.na(dat$new_w)] <- 0
-
 
 tb_r <-
   with(dat, data.frame(C, w, new_w, ace_ocs)) %>%
@@ -231,3 +232,4 @@ data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
   gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/pred_dr", out, i, ".html"))
+
