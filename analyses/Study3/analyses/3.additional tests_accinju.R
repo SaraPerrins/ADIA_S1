@@ -9,7 +9,11 @@ options(scipen = 10^3)
 i   <- 'discrim_reason'
 out <- 'accinju'
 
-file_name <- paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/data/NLS.tree", out, i, ".Rds")
+
+setwd("/Users/Lucas/Documents/GitHub/ADIA_S13/analyses/Study3/")
+
+file_name <- paste0("data/NLS.tree", out, i, ".Rds")
+file_name
 dat <- readRDS(file_name)
 dim(dat)
 summary(dat)
@@ -26,7 +30,7 @@ summary(dat)
 #========================================================================
 # the basis for the relevant group comes from CausalTree for this outcome
 # but  could come from the classical tree results for other outcomes
-#causal tree groups 
+# causal tree groups 
 
 dat <-
   dat %>%
@@ -48,13 +52,17 @@ table(dat$ace_ocs, useNA = "ifany")
 #========================================================================
 #Entropy Balancing
 #Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
-source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
+source("R/ebw.r")
 
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 
-z <- c("female", "agegrp", "white")
+#z <- c("female", "agegrp", "white")
+
+z <- c("female", "agegrp", "white", "hisp", "black", "asian","asian_nhpi", "othrace", "mhighgd_bin"
+       , "rural", "mixur"
+       )
 
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
@@ -102,7 +110,7 @@ grp <- c("None", "ACE", "ACE + OCS", "OCS")
 weights <-
   lapply(grp, \(g) {
     with(dat[!is.na(dat$ace_ocs) & dat$ace_ocs == g, ],
-         ebw(id = id, covariates = C, target.margins = tgt, base.weight = w)
+         find_weights(id = id, covariates = C, target.margins = tgt, base.weight = w)
     )
   }) %>%
   bind_rows
@@ -135,7 +143,7 @@ left_join(tb_r, tb_w, by = "var") %>% data.frame()
 left_join(tb_r, tb_w, by = "var", suffix = c(".raw", ".weighted")) %>%
   gt %>%
   tab_header(title = "Before and after weighting") %>%
-  gtsave(paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/raw_weighted", out, i, ".html"))
+  gtsave(paste0("output/raw_weighted", out, i, ".html"))
 
 
 #========================================================================

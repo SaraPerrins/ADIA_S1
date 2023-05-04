@@ -21,6 +21,8 @@ dim(dat)
 dat <-  dat %>% filter(training.sample == 0)
 dim(dat)
 
+summary(dat$w)
+
 #========================================================================
 # causal present health tree
 #========================================================================
@@ -57,10 +59,11 @@ source("R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 z <- c("female", "agegrp", "white", "hisp", "black", "asian","asian_nhpi", "othrace", "mhighgd_bin"
-       ,"rural", "mixur"
+       , "rural", "mixur"
        #,
        #"mhhinco" removing income as covariate
        )
+
 
 # Ye: I replaced income with income adjusted in preprocess 01/18/2023
 dat$Z <- dat[, z]
@@ -107,7 +110,8 @@ grp <- c("None", "ACE", "ACE + OCS", "OCS")
 weights <-
   lapply(grp, \(g) {
     with(dat[!is.na(dat$ace_ocs) & dat$ace_ocs == g, ],
-         ebw(id = id, covariates = C, target.margins = tgt, base.weight = w)
+      find_weights(id = id
+      , covariates = C, target.margins = tgt, base.weight = w)
     )
   }) %>%
   bind_rows
@@ -115,6 +119,9 @@ weights <-
 colnames(weights)[2] <- "new_w"
 dat  <- left_join(dat, weights, by = "id")
 dat$new_w[is.na(dat$new_w)] <- 0
+
+with(dat, plot(sqrt(w/sum(w)), sqrt(new_w)))
+with(dat[dat$w>0, ], cor(sqrt(w/sum(w)), sqrt(new_w)))
 
 
 tb_r <-

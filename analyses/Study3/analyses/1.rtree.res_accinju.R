@@ -14,14 +14,16 @@ options(scipen = 10^3)
 options(warn = 0)
 
 getwd()
-setwd('C:/Users/55231/OneDrive - ICF/Desktop/ADIA/analyses/accinju') 
+#setwd('C:/Users/55231/OneDrive - ICF/Desktop/ADIA/') 
+setwd("/Users/Lucas/Documents/GitHub/ADIA_S13/analyses/Study3/")
+
 
 i   <- 'discrim_reason'
 out <- 'accinju'
 
 ####### read Study dataset output from SAS ######
-org_dat <- readRDS("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/data/finalvar_03232023.rds") # 11,545 observations #
-#org_dat <- read.csv("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/data/finalvar_03232023_update.csv") # excluding missing discrim variables
+#org_dat <- readRDS("data/finalvar_03232023.rds") # 11,545 observations #
+org_dat <- read.csv("data/finalvar_03232023_update.csv") # excluding missing discrim variables
 dim(org_dat)
 
 ##### check Study 1 dataset for comparison #####
@@ -97,7 +99,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     roundint=FALSE) 
 
 png(
-  paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/", out, "/tree.plot.unconditional_Study 3.", i, "_Study 3.png"),
+  paste0("output/", out, "/tree.plot.unconditional_Study 3.", i, "_Study 3.png"),
   width = 480 * 4, heigh = 480 * 4, res = 300)
 #rpart.plot(ptree, roundint = FALSE)
 prp(ptree, type = 4, # left and right split labels (see Figure 2)
@@ -161,7 +163,7 @@ rpart.plot(ptree.cond, roundint = FALSE)
 # plot(as.party(ptree.cond))
 
 png(
-  paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/", out, "/tree.plot.conditional", i, "_Study 3.png"),
+  paste0("/output/", out, "/tree.plot.conditional", i, "_Study 3.png"),
   width = 480 * 4, heigh = 480 * 4, res = 300)
 rpart.plot(ptree.cond, roundint = FALSE)
 dev.off()
@@ -187,7 +189,7 @@ table(dat$anyACE_T)
 ### a. Find balancing weights among those with and without any ACEs
 #Entropy Balancing
 #Reference: #https://web.stanford.edu/~jhain/Paper/eb.pdf
-source("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/R/ebw.r")
+source("R/ebw.r")
 
 # In orther to balance the missing pattern we need to:
 # for categorical variables, create an NA category (addNA)
@@ -303,7 +305,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     roundint=FALSE) 
 
 png(
-  paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/output/", out, "/tree.plot.causal", i, "_Study 3.png"),
+  paste0("output/", out, "/tree.plot.causal", i, "_Study 3.png"),
   width = 480 * 4, heigh = 480 * 4, res = 300)
 rpart.plot(ptree_causal, roundint = FALSE)
 prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
@@ -334,5 +336,5 @@ table(dat$node.cau)
 
 
 #===========================================================================================
-file_name <- paste0("C:/Users/55231/OneDrive - ICF/Desktop/ADIA/data/NLS.tree", out, i, ".Rds")
+file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 saveRDS(dat, file = file_name)
