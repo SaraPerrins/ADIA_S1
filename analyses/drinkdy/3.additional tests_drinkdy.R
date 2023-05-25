@@ -9,7 +9,7 @@ options(digits = 3)
 options(scipen = 10^3)
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'anxiety'
 #out <- 'depress'
 #out <- 'preshlth'
@@ -42,9 +42,10 @@ dat <-
              , anyACE_T == 0 &  (bneedin == 1) ~ "OCS"
              , anyACE_T == 0 & !(bneedin == 1) ~ "None"
            )
-         , ace_ocs = factor(ace_ocs)
-         , ace_ocs = relevel(ace_ocs, ref = "None")
-  )
+         , ace_ocs = factor(ace_ocs
+                            , levels = c("None", "ACE", "ACE + OCS", "OCS")
+         ))
+levels(dat$ace_ocs)
 
 table(dat$ace_ocs, useNA = "ifany")
 
@@ -59,13 +60,11 @@ source("R/ebw.r")
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
 z <- c("female", "agegrp", "white", "hisp", "black", "asian", "asian_nhpi", "othrace", "mhighgd_bin",
-       "rural", "mixur",
-       "mhhinco")
-#, "agegrp", 
-#      "black", "white", "hisp", "asian", "asian_nhpi", "othrace",
-#      "mhighgd_bin",
-#      "rural", "mixur",
-#      "mhhinco")
+       "rural", "mixur"
+       #,
+       #"mhhinco" removing income as covariate
+       )
+
 # Ye: I replaced income with income adjusted in preprocess 01/18/2023
 dat$Z <- dat[, z]
 # In orther to balance the missing pattern we need to:
@@ -206,7 +205,7 @@ fit_dr <- svyglm(y ~ ace_ocs
                  + black + white + hisp + asian + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
-                 + mhhinco
+                 #+ mhhinco removing income as covariate
                  , design = sdw)
 
 coef(summary(fit_dr))[2:4, ]
@@ -232,8 +231,9 @@ pred_dr <- predict(fit_dr,
                                         othrace = 0,
                                         mhighgd_bin = 0,
                                         rural = 0,
-                                        mixur = 0,
-                                        mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                        mixur = 0
+                                        #,
+                                        #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                    )
 )
 
