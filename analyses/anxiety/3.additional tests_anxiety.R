@@ -47,9 +47,11 @@ dat <-
              , !(physabu ==1 | mentill==1 | incarce==1) &  (bneedin ==1) ~ "OCS"
              ,! (physabu ==1 | mentill==1 | incarce==1) & !(bneedin ==1) ~ "None"
            )
-         , ace_ocs = factor(ace_ocs)
-         , ace_ocs = relevel(ace_ocs, ref = "None")
-  )
+         , ace_ocs = factor(ace_ocs
+                            , levels = c("None", "ACE", "ACE + OCS", "OCS")
+         ))
+levels(dat$ace_ocs)
+
 table(dat$ace_ocs, useNA = "ifany")
 table(dat$ace_ocs,dat$agegrp, useNA = "ifany")
 #recode age as two categories because "none" and "OCS" groups do 4,5,6
@@ -283,9 +285,11 @@ dat <-
              , anyACE_T == 0 &  (loveaff == 1) ~ "OCS"
              , anyACE_T == 0 & !(loveaff == 1) ~ "None"
            )
-         , ace_ocs = factor(ace_ocs)
-         , ace_ocs = relevel(ace_ocs, ref = "None")
-  )
+         , ace_ocs = factor(ace_ocs
+                            , levels = c("None", "ACE", "ACE + OCS", "OCS")
+         ))
+
+levels(dat$ace_ocs)
 
 table(dat$ace_ocs, useNA = "ifany")
 
