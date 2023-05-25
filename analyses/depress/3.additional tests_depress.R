@@ -56,9 +56,10 @@ dat <-
              , !(physabu ==1 | mentill==1) &  (bneedin ==1 | commstr==1) ~ "OCS"
              ,! (physabu ==1 | mentill==1) & !(bneedin ==1 | commstr==1) ~ "None"
            )
-         , ace_ocs = factor(ace_ocs)
-         , ace_ocs = relevel(ace_ocs, ref = "None")
-  )
+         , ace_ocs = factor(ace_ocs
+                            , levels = c("None", "ACE", "ACE + OCS", "OCS")
+         ))
+levels(dat$ace_ocs)
 
 table(dat$ace_ocs, useNA = "ifany")
 
@@ -276,10 +277,10 @@ dat <-
              , anyACE_T == 0 &  (loveaff == 1 | bneedin == 1) ~ "OCS"
              , anyACE_T == 0 & !(loveaff == 1 | bneedin == 1) ~ "None"
            )
-         , ace_ocs = factor(ace_ocs)
-         , ace_ocs = relevel(ace_ocs, ref = "None")
-  )
-
+         , ace_ocs = factor(ace_ocs
+                            , levels = c("None", "ACE", "ACE + OCS", "OCS")
+         ))
+levels(dat$ace_ocs)
 table(dat$ace_ocs, useNA = "ifany")
 
 #========================================================================
