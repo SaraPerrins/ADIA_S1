@@ -583,44 +583,64 @@ data twentyseven;
 set twentysix;
 if sum (of hisplat_:)>=0 |
 sum(of raceeth_:)>=0 then do;
-hisp=0;
-white=0;
-black=0;
-asian_nhpi=0;
-asian=0;
-othrace=0;
+hisp_C=0;
+white_C=0;
+black_C=0;
+asian_nhpi_C=0;
+othrace_C=0;
 end;
 
 
 if sum(of hisplat_1998-hisplat_2018) >= 1 | 
 raceeth_1994 = 3 |
 raceeth_1996 = 3 |
-raceeth_1998 = 3 |
+/*raceeth_1998 = 3 |*/
 sum(of raceeth_7_2010, raceeth_7_2012, raceeth_7_2014, raceeth_7_2016, raceeth_7_2018) >=1 
-then hisp=1;
+then hisp_C=1;
 
-array race1 raceeth_1_2000		raceeth_1_2002		raceeth_1_2004		raceeth_1_2006		raceeth_1_2008		raceeth_1_2010		raceeth_1_2012		raceeth_1_2014_1		raceeth_1_2016		raceeth_1_2018;
-array race2 raceeth_2_2000		raceeth_2_2002		raceeth_2_2004		raceeth_2_2006		raceeth_2_2008		raceeth_2_2010		raceeth_2_2012		raceeth_2_2014_2		raceeth_2_2016		raceeth_2_2018;
-array race3 raceeth_3_2000		raceeth_3_2002		raceeth_3_2004		raceeth_3_2006		raceeth_3_2008		raceeth_3_2010		raceeth_3_2012		raceeth_3_2014_3		raceeth_3_2016		raceeth_3_2018;
-array race4 raceeth_4_2000		raceeth_4_2002		raceeth_4_2004		raceeth_4_2006		raceeth_4_2008		raceeth_4_2010		raceeth_4_2012		raceeth_4_2014_4		raceeth_4_2016		raceeth_4_2018;
-array race5 raceeth_5_2000		raceeth_5_2002		raceeth_5_2004		raceeth_5_2006		raceeth_5_2008		raceeth_5_2010		raceeth_5_2012		raceeth_5_2014_5		raceeth_5_2016		raceeth_5_2018;
-array race6 raceeth_6_2000		raceeth_6_2002		raceeth_6_2004		raceeth_6_2006		raceeth_6_2008		raceeth_6_2010		raceeth_6_2012		raceeth_6_2014_6		raceeth_6_2016		raceeth_6_2018;
-do over race1 ;if race1=1 then white=1;end;
-do over race2 ;if race2=1 then black=1;end;
-do over race3 ;if race3=1 then asian_nhpi=1;end;
-do over race4 ;if race4=1 then asian_nhpi=1=1;end;
-do over race5 ;if race5=1 then asian=1;end;
-do over race6 ;if race6=1 then othrace=1;end;
+array race11 raceeth_1_2000		raceeth_1_2002		raceeth_1_2004		raceeth_1_2006;
+array race21 raceeth_2_2000		raceeth_2_2002		raceeth_2_2004		raceeth_2_2006;
+array race31 raceeth_3_2000		raceeth_3_2002		raceeth_3_2004		raceeth_3_2006;
+array race41 raceeth_4_2000		raceeth_4_2002		raceeth_4_2004		raceeth_4_2006;
+array race51 raceeth_5_2000		raceeth_5_2002		raceeth_5_2004		raceeth_5_2006;
+array race61 raceeth_6_2000		raceeth_6_2002		raceeth_6_2004		raceeth_6_2006;
+do over race11 ;if race11=1 then white_C=1;end;
+do over race21 ;if race21=1 then black_C=1;end;
+do over race31 ;if race31=1 then asian_nhpi_C=1;end;
+do over race41 ;if race41=1 then asian_nhpi_C=1;end;
+do over race51 ;if race51=1 then asian_nhpi_C=1;end;
+do over race61 ;if race61=1 then othrace_C=1;end;
 
-array oldrace raceeth_1994 raceeth_1996 raceeth_1998;
+array race1 raceeth_1_2008		raceeth_1_2010		raceeth_1_2012		raceeth_1_2014_1		raceeth_1_2016		raceeth_1_2018;
+array race2 raceeth_2_2008		raceeth_2_2010		raceeth_2_2012		raceeth_2_2014_2		raceeth_2_2016		raceeth_2_2018;
+array race3 raceeth_3_2008		raceeth_3_2010		raceeth_3_2012		raceeth_3_2014_3		raceeth_3_2016		raceeth_3_2018;
+array race4 raceeth_4_2008		raceeth_4_2010		raceeth_4_2012		raceeth_4_2014_4		raceeth_4_2016		raceeth_4_2018;
+array race5 raceeth_5_2008		raceeth_5_2010		raceeth_5_2012		raceeth_5_2014_5		raceeth_5_2016		raceeth_5_2018;
+array race6 raceeth_6_2008		raceeth_6_2010		raceeth_6_2012		raceeth_6_2014_6		raceeth_6_2016		raceeth_6_2018;
+do over race1 ;if race1=1 then white_C=1;end;
+do over race2 ;if race2=1 then black_C=1;end;
+do over race3 ;if race3=1 then asian_nhpi_C=1;end;
+do over race4 ;if race4=1 then asian_nhpi_C=1;end;
+do over race5 ;if race5=1 then asian_nhpi_C=1;end;
+do over race6 ;if race6=1 then othrace_C=1;end;
+
+
+
+array oldrace raceeth_1994 raceeth_1996 /*raceeth_1998*/;
 do over oldrace;
-if oldrace=1 then black=1;
-if oldrace=2 then white=1;
-if oldrace=3 then hisp=1;
-if oldrace=4 then asian=1;
-if oldrace=5 then asian_nhpi=1;
-if oldrace=6 then othrace=1;
+if oldrace=1 then black_C=1;
+if oldrace=2 then white_C=1;
+if oldrace=3 then hisp_C=1;
+if oldrace=4 then asian_nhpi_C=1; /*should be american indian*/
+if oldrace=5 then asian_nhpi_C=1;
+if oldrace=6 then othrace_C=1;
 end;
+if raceeth_1998 = 1 then white_C=1;
+if raceeth_1998 = 2 then black_C=1;
+if raceeth_1998 = 3 then asian_nhpi_C=1;
+if raceeth_1998 = 4 then asian_nhpi_C=1;
+if raceeth_1998 = 5 then asian_nhpi_C=1;
+if raceeth_1998 = 6 then othrace_C=1;
 run;
 proc freq data=twentyseven;
 tables black white hisp asian asian_nhpi othrace;
