@@ -5,8 +5,8 @@ getwd()
 # Ye: un-comment this next line to change path to your own
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
-#(using 01.30, most recent flat data file)
-dat <- read.csv('data/finalvar_01.30.2023.csv')
+#(using 08.20, flat data file with updated race variable)
+dat <- read.csv('data/finalvar_08202023.csv')
 summary(dat)
 summary(dat$w)
 summary(dat$bneedin)
@@ -43,16 +43,15 @@ mean(is.na(dat$sensitivityNOTRES))
 dat$female <- dat$sex - 1
 
 dat$anyrace <- as.integer(apply(
-  dat[, c('white','black','asian_nhpi','asian','othrace')], 1,
+  dat[, c('white','black','asian_nhpi','othrace')], 1,
   sum, na.rm = TRUE) >= 2)
 
 dat$race[dat$white ==1] <- 2
 dat$race[dat$black ==1] <- 3
 dat$race[dat$asian_nhpi ==1] <- 4
-dat$race[dat$asian ==1] <- 5
-dat$race[dat$othrace == 1] <- 6
+dat$race[dat$othrace == 1] <- 5
 dat$race[dat$hisp ==1] <- 1
-dat$race[dat$anyrace == 1] <- 7
+dat$race[dat$anyrace == 1] <- 6
 #dat$race[is.na(dat$race)]<-9
 
 table(dat$race)
@@ -62,7 +61,7 @@ dat$race <- factor(dat$race)
 
 
 head(dat)
-#view(dat[,c('white','black','asian_nhpi','asian','othrace', 'hisp', 'race')])
+#view(dat[,c('white','black','asian_nhpi','othrace', 'hisp', 'race')])
 
 ###Cohort
 dat$ageo <- 2018 - dat$yob
