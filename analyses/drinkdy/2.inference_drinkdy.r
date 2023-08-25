@@ -22,7 +22,7 @@ options(scipen = 10^3)
 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'preshlth'
 #out <- 'depress'
 #out <- 'anxiety'
@@ -32,6 +32,7 @@ out <- 'drinkdy'
 #dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.notres.Rds")
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 dat <- readRDS(file_name)
+table(dat$white)
 #======================================================================================
 #1.- unconditional
 #======================================================================================
@@ -84,10 +85,12 @@ sd.w  <- svydesign(id = ~id, weights = ~ w, data = df1)
 fit.cnd <- svyglm(y ~ node.cnd
    #+ female - cannot control for female in drinkdy as it was identified in regression tree
    + agegrp
-   + black + white + hisp + asian + asian_nhpi + othrace +
+   #+ black + white black and white identified in tree so commented out
+   + hisp + asian_nhpi + othrace +
    + mhighgd_bin
-   + rural + mixur
-   + mhhinco,
+   + rural + mixur + white
+   #+ mhhinco removing income as covariate
+   ,
    design = sd.w)
 summary(fit.cnd)
 anova(fit.cnd, update(fit.cnd, . ~ . - node.cnd))
@@ -100,18 +103,18 @@ table(dat$urbnrur)
 
 pred.cnd <- predict(fit.cnd,
               newdata = data.frame(node.cnd = unique(dat$node.cnd),
-                                   female = 1,
+                                   #female = 1,
                                    agegrp = mean(dat$agegrp, na.rm = TRUE),
-                                   black = 0,
+                                   #black = 0,
                                    white = 0,
                                    hisp = 1,
-                                   asian = 0,
                                    asian_nhpi = 0,
                                    othrace = 0,
                                    mhighgd_bin = 0,
                                    rural = 0,
-                                   mixur = 0,
-                                   mhhinco = mean(dat$mhhinco, na.rm = TRUE)
+                                   mixur = 0
+                                   #,
+                                   #mhhinco = mean(dat$mhhinco, na.rm = TRUE) removing income as covariate
                                    )
                     )
                     
