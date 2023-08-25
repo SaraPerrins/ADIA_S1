@@ -27,7 +27,8 @@ out <- 'preshlth'
 #out <- 'anxiety'
 #out <- 'drinkdy'
 
-dat <- readRDS("data/finalvar.Rds")
+dat <- readRDS("data/finalvar1.Rds")
+table(dat$white)
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
 #removing the switching of sensitivity discrim variable as we are now just using reason_discrim
@@ -36,10 +37,6 @@ table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
 
-#to have the tree graphs display yes/no uncomment the code below
-#dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
-#dat$commstr <- factor(dat$commstr, labels=c("no", "yes"))
-#dat$female <- factor(dat$female, labels=c("no", "yes"))
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
 #===============================================================================
@@ -52,7 +49,7 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
 
 #removing income below 02/18/2023
 # covariates/confounding
-z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
+z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian_nhpi', 'othrace', 'mhighgd_bin',
        'rural', 'mixur') 
     
 dat$Z <- dat[, z]
@@ -79,7 +76,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "RdYlGn", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -99,7 +96,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "RdYlGn", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -210,7 +207,7 @@ colMeans(dat$C)
 dat$C <- dat$C[, colMeans(dat$C) > .01]
 # NA black, etc. are repetead
 dat$C <- dat$C[, !colnames(dat$C) %in%
-  c("NA_whiteTRUE", "NA_hispTRUE", "NA_asianTRUE",
+  c("NA_whiteTRUE", "NA_hispTRUE",
   "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
   "NA_mixurTRUE")]
 colMeans(dat$C)
@@ -302,7 +299,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "RdYlGn", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
