@@ -27,7 +27,8 @@ i   <- 'discrim_reason'
 out <- 'anxiety'
 #out <- 'drinkdy'
 
-dat <- readRDS("data/finalvar.Rds")
+dat <- readRDS("data/finalvar1.Rds")
+table(dat$white)
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
 #removing the switching of sensitivity discrim variable as we are now just using reason_discrim
@@ -35,15 +36,6 @@ dat <- readRDS("data/finalvar.Rds")
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
-
-#to see yes/no on graphs run the code below
-#dat$female <- factor(dat$female, labels=c("no", "yes"))
-#dat$incarce <- factor(dat$incarce, labels=c("no", "yes"))
-dat$loveaff <- factor(dat$loveaff, labels=c("no", "yes"))
-table(dat$loveaff, useNA = "ifany")
-#dat$mentill <- factor(dat$mentill, labels=c("no", "yes"))
-#dat$physabu <- factor(dat$physabu, labels=c("no", "yes"))
-#dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
 
 #===============================================================================
 ### 1.- 'Classical' regression tree (expousure & covariates are all lump together as predictors)
@@ -56,7 +48,7 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
        'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
 
 # covariates/confounding
-z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
+z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian_nhpi', 'othrace', 'mhighgd_bin',
        'rural', 'mixur'
        #,
        #'mhhinco' removing income as covariate 02/18/2023
@@ -86,7 +78,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -106,7 +98,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -218,7 +210,7 @@ colMeans(dat$C)
 dat$C <- dat$C[, colMeans(dat$C) > .01]
 # NA black, etc. are repetead
 dat$C <- dat$C[, !colnames(dat$C) %in%
-  c("NA_whiteTRUE", "NA_hispTRUE", "NA_asianTRUE",
+  c("NA_whiteTRUE", "NA_hispTRUE",
   "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
   "NA_mixurTRUE")]
 colMeans(dat$C)
@@ -309,7 +301,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -330,7 +322,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -350,7 +342,7 @@ table(dat$node.cau)
 table(dat$loveaff, useNA = "ifany")
 dat$loveaff <- as.numeric(dat$loveaff)
 table(dat$loveaff, useNA = "ifany")
-dat$loveaff <- dat$loveaff - 1
+#dat$loveaff <- dat$loveaff - 1
 table(dat$loveaff, useNA = "ifany")
 #===========================================================================================
 #saveRDS(dat, file = "C:/Users/55484/OneDrive - ICF/Documents/ADIA/RegressionTreeGraphics/data/NLS.tree.causal.w.Rds")
