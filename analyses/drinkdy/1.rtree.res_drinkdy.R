@@ -21,23 +21,21 @@ getwd()
 setwd('C:/Users/55484/OneDrive - ICF/Documents/ADIA_S13') 
 
 #i <- 'RES'
-i   <- 'NOTRES'
+i   <- 'discrim_reason'
 #out <- 'preshlth'
 #out <- 'depress'
 #out <- 'anxiety'
 out <- 'drinkdy'
 
-dat <- readRDS("data/finalvar.Rds")
+dat <- readRDS("data/finalvar1.Rds")
+table(dat$white)
 # 01/17/2023
 # Ye: I am thinking we can make the change here, rahter than in 0.preprocess
-dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
+#no longer need to switch out discrim variable
+#dat$DISC <- unlist(dat[, paste0("sensitivity", i)])
 table(dat$DISC, useNA = "ifany")
 
 dat$y <- unlist(dat[, out])
-
-#to produce graphics with yes/no run the code below
-#dat$bneedin <- factor(dat$bneedin, labels=c("no", "yes"))
-#dat$female <- factor(dat$female, labels=c("no", "yes"))
 
 
 #===============================================================================
@@ -51,9 +49,11 @@ x <- c('commstr', 'ecstand', 'bneedin', 'mloveaf', 'mphysab', 'msubstu', 'mmenta
        'DISC', 'loveaff', 'incarce', 'divorce', 'physabu', 'subsuse', 'mentill')
 
 # covariates/confounding
-z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian', 'asian_nhpi', 'othrace', 'mhighgd_bin',
-       'rural', 'mixur',
-       'mhhinco') # Ye: I replaced income with income adjusted in preprocess 01/18/2023
+z <- c('female', 'agegrp', 'black', 'white', 'hisp', 'asian_nhpi', 'othrace', 'mhighgd_bin',
+       'rural', 'mixur'
+       #,
+       #'mhhinco' removing income as covariate 02/18/2023
+       ) # Ye: I replaced income with income adjusted in preprocess 01/18/2023
     
 dat$Z <- dat[, z]
 dat$X <- dat[, x]
@@ -79,7 +79,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -99,7 +99,7 @@ prp(ptree, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -134,7 +134,7 @@ dat <-
   dat %>%
   mutate(strata = paste0(
     female, white, cut(yob, 3),
-    rural, cut(mhhinco, 3)
+    rural, cut(mhhinco, 3)#not using conditional tree so no need to update code here 
     )) %>%
   group_by(strata) %>%
   mutate(n = n(), strata = if_else(n > 10, strata, "misc"))
@@ -212,7 +212,7 @@ colMeans(dat$C)
 dat$C <- dat$C[, colMeans(dat$C) > .01]
 # NA black, etc. are repetead
 dat$C <- dat$C[, !colnames(dat$C) %in%
-  c("NA_whiteTRUE", "NA_hispTRUE", "NA_asianTRUE",
+  c("NA_whiteTRUE", "NA_hispTRUE",
   "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
   "NA_mixurTRUE")]
 colMeans(dat$C)
@@ -304,7 +304,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
@@ -324,7 +324,7 @@ prp(ptree_causal, type = 4, # left and right split labels (see Figure 2)
     under = TRUE, # position extra info _under_ the boxes
     under.cex = 1, # size of text under the boxes (default is .8)
     fallen.leaves = TRUE, # put leaves at the bottom of plot
-    box.palette = "GnYlRd", # color of the boxes
+    box.palette = "Greys", # color of the boxes
     branch = .3, # branch lines with narrow shoulders and down slopes
     round = 0, # no rounding of node corners i.e. use rectangles
     leaf.round = 9, # round leaf nodes (for leaves, this supersedes the round arg)
