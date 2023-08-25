@@ -32,6 +32,7 @@ out <- 'anxiety'
 #dat <- readRDS("C:/Users/21983/OneDrive - ICF/ADIA/study 1/data/NLS.tree.unconditional.w.notres.Rds")
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 dat <- readRDS(file_name)
+table(dat$white)
 #======================================================================================
 #1.- unconditional
 #======================================================================================
@@ -86,7 +87,7 @@ sd.w  <- svydesign(id = ~id, weights = ~ w, data = df1)
 fit.cnd <- svyglm(y ~ node.cnd
    #+ female - female commented out because it was identified in classical tree
    + agegrp
-   + black + white + hisp + asian + asian_nhpi + othrace +
+   + black + white + hisp + asian_nhpi + othrace +
    + mhighgd_bin
    + rural + mixur
    #+ mhhinco no longer including income as covariate 02/18/2023
@@ -108,7 +109,6 @@ pred.cnd <- predict(fit.cnd,
                                    black = 0,
                                    white = 0,
                                    hisp = 1,
-                                   asian = 0,
                                    asian_nhpi = 0,
                                    othrace = 0,
                                    mhighgd_bin = 0,
