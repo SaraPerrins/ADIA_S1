@@ -16,6 +16,7 @@ out <- 'accinju'
 file_name <- paste0("data/NLS.tree", out, i, ".Rds")
 dat <- readRDS(file_name)
 dim(dat)
+table(dat$white)
 
 dat <-  dat %>% filter(training.sample == 0)
 dim(dat)
@@ -35,10 +36,10 @@ dat <-
   dat %>%
   mutate(ace_ocs =
            case_when(
-             anyACE_T == 1 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE"
-             , anyACE_T == 1 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "ACE + OCS"
-             , anyACE_T == 0 &  (ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "OCS"
-             , anyACE_T == 0 & !(ecstand == 1 | msubstu == 1 | loveaff == 1 | mphysab == 1 | mloveaf == 1) ~ "None"
+             anyACE_T == 1 & !(ecstand == 1 | mphysab == 1 | mmental == 1) ~ "ACE"
+             , anyACE_T == 1 &  (ecstand == 1 | mphysab == 1 | mmental == 1) ~ "ACE + OCS"
+             , anyACE_T == 0 &  (ecstand == 1 | mphysab == 1 | mmental == 1) ~ "OCS"
+             , anyACE_T == 0 & !(ecstand == 1 | mphysab == 1 | mmental == 1) ~ "None"
            )
          , ace_ocs = factor(ace_ocs
                             , levels = c("None", "ACE", "ACE + OCS", "OCS")
@@ -58,7 +59,7 @@ source("R/ebw.r")
 # the matrix of covariates C was already created in step 1
 # the following code can be skipped if no modifications are requiered
 # covariates/confounding
-z <- c("female", "agegrp", "white", "hisp", "black", "asian", "asian_nhpi", "othrace", "mhighgd_bin",
+z <- c("female", "agegrp", "white", "hisp", "black", "asian_nhpi", "othrace", "mhighgd_bin",
        "rural", "mixur"
        #,
        #"mhhinco" removing income as covariate
@@ -92,7 +93,7 @@ colMeans(dat$C)
 dat$C <- dat$C[, colMeans(dat$C) > .05]
 # NA black, etc. are repetead
 dat$C <- dat$C[, !colnames(dat$C) %in%
-                 c("NA_whiteTRUE","NA_blackTRUE", "NA_hispTRUE", "NA_asianTRUE",
+                 c("NA_whiteTRUE","NA_blackTRUE", "NA_hispTRUE",
                    "NA_asian_nhpiTRUE", "NA_othraceTRUE", 
                    "NA_mixurTRUE")]
 colMeans(dat$C)
@@ -201,7 +202,7 @@ data.frame(Group = grp, pred0, confint(pred0)) %>%
 #-------------------------------------------------------------------
 fit_dr <- svyglm(y ~ ace_ocs
                  + female + agegrp
-                 + black + white + hisp + asian + asian_nhpi + othrace +
+                 + black + white + hisp + asian_nhpi + othrace +
                    + mhighgd_bin
                  + rural + mixur
                  #+ mhhinco no longer including covariate 02/18/2023
@@ -225,7 +226,6 @@ pred_dr <- predict(fit_dr,
                                         black = 0,
                                         white = 0,
                                         hisp = 1,
-                                        asian = 0,
                                         asian_nhpi = 0,
                                         othrace = 0,
                                         mhighgd_bin = 0,
@@ -244,4 +244,3 @@ data.frame(Group = grp, pred_dr, confint(pred_dr)) %>%
   gt %>%
   tab_header(title = "Predicted values (Doubly robust)") %>%
   gtsave(paste0("output/pred_dr", out, i, ".html"))
-
